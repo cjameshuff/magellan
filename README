@@ -1,8 +1,12 @@
 Requirements:
 zlib
 libpng
+Lua
 
 If libraries aren't already installed:
+wget http://zlib.net/zlib-1.2.5.tar.gz
+wget http://download.sourceforge.net/libpng/libpng-1.4.5.tar.gz
+wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
 make libs
 
 Then:
