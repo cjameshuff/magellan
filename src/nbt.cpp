@@ -139,6 +139,11 @@ NBT_Tag * Parse_Tag(gzFile fin)
 {
 //    cerr << "Parsing tag type" << endl;
     nbt_tag_t type = (nbt_tag_t)Parse_Byte(fin);
+    
+    if(type >= kNBT_NumTagTypes) {
+        cerr << "Invalid tag type: " << (int)type << endl;
+        abort();
+    }
 //    cerr << "Tag type " << (int)type << ", typename: " << kTypeNames[type] << endl;
     
     string name;
@@ -250,10 +255,8 @@ void NBT_TagList::WriteData(gzFile fout)
     // Single type shared among all list entries, entries are unnamed 
     NBT_Write(fout, (int8_t)ValueType());
     NBT_Write(fout, (int32_t)values.size());
-    for(std::vector<NBT_Tag *>::iterator t = values.begin(); t != values.end(); ++t) {
+    for(std::vector<NBT_Tag *>::iterator t = values.begin(); t != values.end(); ++t)
         (*t)->WriteData(fout);
-        NBT_Write(fout, (int8_t)kNBT_TAG_End);
-    }
 }
 
 //******************************************************************************

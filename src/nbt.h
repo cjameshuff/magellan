@@ -53,7 +53,8 @@ enum nbt_tag_t {
     kNBT_TAG_Byte_Array = 7, // vector<int8_t> *
     kNBT_TAG_String = 8,     // string *
     kNBT_TAG_List = 9,       // vector<NBT_Tag> *
-    kNBT_TAG_Compound = 10   // vector<NBT_Tag> *
+    kNBT_TAG_Compound = 10,  // vector<NBT_Tag> *
+    kNBT_NumTagTypes
 };
 
 extern const std::string kTypeNames[];

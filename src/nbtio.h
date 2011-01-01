@@ -79,25 +79,33 @@ static inline int64_t Parse_Long(gzFile fin)
 }
 
 static inline float Parse_Float(gzFile fin) {
-    // For little-endian architectures (x86)
-    uint32_t val = ((uint32_t)Parse_UByte(fin) << 24);
-    val |= ((uint32_t)Parse_UByte(fin) << 16);
-    val |= ((uint32_t)Parse_UByte(fin) << 8);
-    val |= (uint32_t)Parse_UByte(fin);
-    return *reinterpret_cast<float*>(&val);
+    // TODO: check endianness issues
+    union {
+        uint32_t intval;
+        float floatval;
+    };
+    intval = ((uint32_t)Parse_UByte(fin) << 24);
+    intval |= ((uint32_t)Parse_UByte(fin) << 16);
+    intval |= ((uint32_t)Parse_UByte(fin) << 8);
+    intval |= (uint32_t)Parse_UByte(fin);
+    return floatval;
 }
 
 static inline double Parse_Double(gzFile fin) {
-    // For little-endian architectures (x86)
-    uint64_t val = ((uint64_t)Parse_UByte(fin) << 56);
-    val |= ((uint64_t)Parse_UByte(fin) << 48);
-    val |= ((uint64_t)Parse_UByte(fin) << 40);
-    val |= ((uint64_t)Parse_UByte(fin) << 32);
-    val |= ((uint64_t)Parse_UByte(fin) << 24);
-    val |= ((uint64_t)Parse_UByte(fin) << 16);
-    val |= ((uint64_t)Parse_UByte(fin) << 8);
-    val |= (uint64_t)Parse_UByte(fin);
-    return *reinterpret_cast<double*>(&val);
+    // TODO: check endianness issues
+    union {
+        uint64_t intval;
+        double dblval;
+    };
+    intval = ((uint64_t)Parse_UByte(fin) << 56);
+    intval |= ((uint64_t)Parse_UByte(fin) << 48);
+    intval |= ((uint64_t)Parse_UByte(fin) << 40);
+    intval |= ((uint64_t)Parse_UByte(fin) << 32);
+    intval |= ((uint64_t)Parse_UByte(fin) << 24);
+    intval |= ((uint64_t)Parse_UByte(fin) << 16);
+    intval |= ((uint64_t)Parse_UByte(fin) << 8);
+    intval |= (uint64_t)Parse_UByte(fin);
+    return dblval;
 }
 
 static inline void Parse_ByteArray(std::vector<uint8_t> & array, gzFile fin)
@@ -167,11 +175,21 @@ static inline void NBT_Write(gzFile fout, int64_t val) {
 }
 
 static inline void NBT_Write(gzFile fout, float val) {
-    NBT_Write(fout, *reinterpret_cast<int32_t *>(&val));
+    union {
+        int32_t intval;
+        float floatval;
+    };
+    floatval = val;
+    NBT_Write(fout, intval);
 }
 
 static inline void NBT_Write(gzFile fout, double val) {
-    NBT_Write(fout, *reinterpret_cast<int64_t *>(&val));
+    union {
+        int64_t intval;
+        double dblval;
+    };
+    dblval = val;
+    NBT_Write(fout, intval);
 }
 
 static inline void NBT_Write(gzFile fout, const std::vector<uint8_t> & val) {
