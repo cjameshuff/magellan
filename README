@@ -1,0 +1,19 @@
+Requirements:
+zlib
+libpng
+
+If libraries aren't already installed:
+make libs
+
+Then:
+make
+make install
+
+By default, installs binaries in ~/bin and puts some data files and scripts into a "magellan" directory in the Minecraft directory, the exact location depending on platform.
+
+nbtutil is a Lua script interpreter with functionality added for loading and writing NBT files. magellan has the same interpreter and bindings, but also has a map loader and renderer. nbtutil is a bit superfluous at this point, but may be extended in the future with functionality that distinguishes it from magellan.
+
+Usage is similar for both. The first argument is the command/script to perform, later arguments depend on it. It is first interpreted as a path, and if a file exists at that location it is executed as a Lua script. If no file exists, the magellan scripts directory is searched next. If there's still no match, a .lua extension is added and the scripts directory is searched again.
+
+nbtutil SCRIPT [SCRIPTARGS]
+magellan SCRIPT [SCRIPTARGS]
