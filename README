@@ -3,7 +3,7 @@ zlib
 libpng
 Lua
 
-If libraries aren't already installed:
+Currently, some needed libraries are built and linked statically when building on Mac OS X. These need to be downloaded:
 wget http://zlib.net/zlib-1.2.5.tar.gz
 wget http://download.sourceforge.net/libpng/libpng-1.4.5.tar.gz
 wget http://www.lua.org/ftp/lua-5.1.4.tar.gz

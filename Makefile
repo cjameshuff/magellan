@@ -22,9 +22,10 @@
 
 CXX = g++
 
-CFLAGS = -Wall -g -O0 -Ilibpng/include -Ilua-5.1.4/etc -Ilua-5.1.4/src
-#CFLAGS = -Wall -g -O3 -Ilibpng/include -Ilua-5.1.4/etc -Ilua-5.1.4/src
-LIBS = zlib-1.2.5/libz.a libpng/lib/libpng.a lua-5.1.4/src/liblua.a
+#OPT = -O0
+OPT = -O3
+
+CFLAGS = -Wall -g ${OPT} -Izlib/include -Ilibpng/include -Ilua/etc -Ilua/src
 
 INSTALLDIR = $(HOME)/bin
 MCIMAGEFILES = terrain.png misc/grasscolor.png misc/foliagecolor.png
@@ -33,10 +34,12 @@ ifeq ($(shell uname -s), Darwin)
 	CFLAGS += -DMACOSX
 	LUABUILD = macosx
 	MCDIR = Library/Application\ Support/minecraft
+	LIBS = zlib/libz.a libpng/lib/libpng.a lua/src/liblua.a
 else
 	CFLAGS += -DLINUX
 	LUABUILD = linux
 	MCDIR = .minecraft
+	LIBS = -lz -lpng lua/src/liblua.a -ldl
 endif
 
 # This may be a bad idea...
@@ -45,12 +48,13 @@ MGLNDIR = $(MCDIR)/magellan
 all: magellan nbtutil
 
 libs:
-	tar -xf zlib-1.2.5.tar.gz
-	cd zlib-1.2.5; ./configure --prefix=`pwd`/../zlib --static; make
+	tar -xf zlib-1.2.5.tar.gz; mv zlib-1.2.5 zlib
+	cd zlib; ./configure --prefix=`pwd`/../zlib --static; make
 	tar -xf libpng-1.4.5.tar.gz
 	cd libpng-1.4.5; ./configure --prefix=`pwd`/../libpng --disable-shared; make; make install
-	tar -xf lua-5.1.4.tar.gz
-	cd lua-5.1.4; make $(LUABUILD)
+	tar -xf lua-5.1.4.tar.gz; mv lua-5.1.4 lua
+	cd lua; make $(LUABUILD)
+	
 
 nbtutil: src/nbtutil.cpp.o src/nbt.cpp.o src/nbtlua.cpp.o
 	$(CXX) src/nbtutil.cpp.o src/nbt.cpp.o src/nbtlua.cpp.o $(LIBS) -o nbtutil
@@ -70,7 +74,8 @@ install: nbtutil magellan
 	cd $(HOME)/$(MGLNDIR); jar -xf $(HOME)/$(MCDIR)/bin/minecraft.jar ${MCIMAGEFILES}
 
 clean_all: clean
-	rm -rf zlib-1.2.5
+	rm -rf lua
+	rm -rf zlib
 	rm -rf libpng-1.4.4
 	rm -rf libpng
 	rm nbtutil

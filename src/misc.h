@@ -24,6 +24,7 @@
 #ifndef MCMISC_H
 #define MCMISC_H
 
+#include <cstdlib>
 #include <string>
 
 inline std::string MCPath()
