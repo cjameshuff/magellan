@@ -6,18 +6,33 @@ Lua
 Currently, some needed libraries are built and linked statically when building on Mac OS X. These need to be downloaded:
 wget http://zlib.net/zlib-1.2.5.tar.gz
 wget http://download.sourceforge.net/libpng/libpng-1.4.5.tar.gz
-wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
 make libs
 
-Then:
+For both Linux and OS X, you'll need to get Lua as well:
+wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
+
+No more needs to be done with this, the makefile will unpack and build Lua on its own. Then the build process is simply:
 make
 make install
 
-By default, installs binaries in ~/bin and puts some data files and scripts into a "magellan" directory in the Minecraft directory, the exact location depending on platform.
+By default, the makefile installs binaries in ~/bin and puts some data files and scripts into a "magellan" directory in the Minecraft directory, the exact location of which depends on platform.
 
-nbtutil is a Lua script interpreter with functionality added for loading and writing NBT files. magellan has the same interpreter and bindings, but also has a map loader and renderer. nbtutil is a bit superfluous at this point, but may be extended in the future with functionality that distinguishes it from magellan.
+nbtutil is a Lua script interpreter with functionality added for loading and writing NBT files. magellan has the same interpreter and bindings, but also has a map loader and renderer. nbtutil is thus a bit superfluous at this point...it may be extended in the future with functionality that distinguishes it from magellan, or removed entirely.
 
-Usage is similar for both. The first argument is the command/script to perform, later arguments depend on it. It is first interpreted as a path, and if a file exists at that location it is executed as a Lua script. If no file exists, the magellan scripts directory is searched next. If there's still no match, a .lua extension is added and the scripts directory is searched again.
-
+Usage is identical for both:
 nbtutil SCRIPT [SCRIPTARGS]
 magellan SCRIPT [SCRIPTARGS]
+
+The first argument is the script/command to perform, later arguments depend on the script/command being executed. It is first interpreted as a path, and if a file exists at that location it is executed as a Lua script. If no file exists, the magellan scripts directory is searched next. If there's still no match, a .lua extension is added and the scripts directory is searched again. For example:
+
+magellan myscripts/mydumpinv.lua 4
+magellan dumpinv.lua 4
+magellan dumpinv 4
+
+Existing scripts:
+ditto.lua INPUT_FILE OUTPUT_FILE - copy input file to output file. Only really useful for testing NBT loading and writing.
+dump.lua INPUT_FILE - dump contents of NBT file in human-readable format.
+dumpinv.lua WORLD_NUMBER - dump player inventory listing for world
+undamage.lua WORLD_NUMBER - remove all damage from items in the player inventory.
+
+mcdefs.lua - various definitions used in the other scripts
