@@ -1,8 +1,8 @@
--- Dump inventory. One parameter, world number.
+-- Remove damage from all inventory items, including armor. One parameter, world number.
 
 if(#ARGV < 3) then
-    print("\ndumpinv.lua usage:");
-    print("\tnbtutil dumpinv.lua WORLDNUM");
+    print("\nundamage.lua usage:");
+    print("\tmagellan undamage.lua WORLDNUM");
     os.exit()
 end
 
@@ -12,7 +12,12 @@ WORLDPATH = MCPATH .. "/saves/World" .. ARGV[3]
 
 LEVELDATPATH = WORLDPATH .. "/level.dat"
 
-nbt = NBT.load(LEVELDATPATH);
+if(os.rename(LEVELDATPATH, LEVELDATPATH .. ".bkp") == nil) then
+    print("Could not backup data file: " .. LEVELDATPATH);
+    os.exit()
+end
+
+nbt = NBT.load(LEVELDATPATH .. ".bkp");
 data = nbt:get("Data");
 player = data:get("Player");
 inventory = player:get("Inventory");
@@ -27,6 +32,12 @@ for i = 0, inventory:size() - 1, 1 do
     local damage = item:get("Damage"):val();
     local count = item:get("Count"):val();
     local slot = item:get("Slot"):val();
-    print(string.format("%d of %s in slot %d, damage %d", count, ItemName(id), slot, damage));
---    print(item);
+    if(damage > 0) then
+        print(string.format("Repairing %s in slot %d, damage %d", ItemName(id), slot, damage));
+        item:get("Damage"):set_short(0);
+    end
 end
+
+nbt:write(LEVELDATPATH);
+
+--print(inventory);
