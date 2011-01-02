@@ -1,5 +1,20 @@
 -- http://www.minecraftwiki.net/wiki/Data_values
---print("mcdefs.lua")
+
+-- inventory slot numbers:
+-- 0-8: equipped inventory (any item)
+-- 9-35: main inventory (any item)
+-- 80, 81, 82, 83: work area (any item)
+-- 103: helmet
+-- 102: torso
+-- 101: leggings
+-- 100: boots
+
+ARMOR_SLOTS = {
+    ["boots"] = 100,
+    ["legs"] = 101,
+    ["torso"] = 102,
+    ["helmet"] = 103,
+};
 
 -- TODO: this is what it is for historical reasons, reformat table.
 -- Possibly store more block/item information in table.
@@ -208,15 +223,17 @@ ITEM_NAMES = {
 ITEM_IDS = {}
 
 -- Generate reverse lookup table mapping names to IDs
-for i, v in ipairs(ITEM_NAMES) do
-    ITEM_IDS[v] = i;
+for i in pairs(ITEM_NAMES) do
+    ITEM_IDS[ITEM_NAMES[i]] = i;
+--    print(string.format("ITEM_IDS[%s] = %d", ITEM_NAMES[i], i));
 end
 for i = 1, #BLOCK_NAMES, 1 do
     ITEM_IDS[BLOCK_NAMES[i]] = i - 1;
+--    print(string.format("ITEM_IDS[%s] = %d", BLOCK_NAMES[i], i - 1));
 end
 
 
-function ItemID(id)
+function ItemID(name)
     return ITEM_IDS[name];
 end
 
