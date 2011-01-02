@@ -1,4 +1,4 @@
-print("render.lua\n")
+print("maprender.lua\n")
 
 load_world({
     world = 4, -- world number
