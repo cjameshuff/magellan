@@ -6,7 +6,7 @@ if(#ARGV < 3) then
     os.exit()
 end
 
-run_script("alphadefs.lua");
+run_script("mcdefs.lua");
 
 WORLDPATH = MCPATH .. "/saves/World" .. ARGV[3]
 
