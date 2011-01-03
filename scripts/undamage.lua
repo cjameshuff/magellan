@@ -12,10 +12,6 @@ WORLDPATH = MCPATH .. "/saves/World" .. ARGV[3]
 
 LEVELDATPATH = WORLDPATH .. "/level.dat"
 
-if(os.rename(LEVELDATPATH, LEVELDATPATH .. ".bkp") == nil) then
-    print("Could not backup data file: " .. LEVELDATPATH);
-    os.exit()
-end
 
 nbt = NBT.load(LEVELDATPATH .. ".bkp");
 data = nbt:get("Data");
@@ -38,6 +34,10 @@ for i = 0, inventory:size() - 1, 1 do
     end
 end
 
+if(os.rename(LEVELDATPATH, LEVELDATPATH .. ".bkp") == nil) then
+    print("Could not backup data file: " .. LEVELDATPATH);
+    os.exit()
+end
 nbt:write(LEVELDATPATH);
 
 --print(inventory);

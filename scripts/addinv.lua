@@ -24,11 +24,6 @@ if(ITEM_ID == nil) then
     os.exit();
 end
 
-if(os.rename(LEVELDATPATH, LEVELDATPATH .. ".bkp") == nil) then
-    print("Could not backup data file: " .. LEVELDATPATH);
-    os.exit()
-end
-
 nbt = NBT.load(LEVELDATPATH .. ".bkp");
 data = nbt:get("Data");
 player = data:get("Player");
@@ -70,4 +65,9 @@ if(not itemAdded) then
     os.exit();
 end
 
+-- Make backup and write new level.dat
+if(os.rename(LEVELDATPATH, LEVELDATPATH .. ".bkp") == nil) then
+    print("Could not backup data file: " .. LEVELDATPATH);
+    os.exit()
+end
 nbt:write(LEVELDATPATH);
