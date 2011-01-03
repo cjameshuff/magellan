@@ -13,7 +13,7 @@ WORLDPATH = MCPATH .. "/saves/World" .. ARGV[3]
 LEVELDATPATH = WORLDPATH .. "/level.dat"
 
 
-nbt = NBT.load(LEVELDATPATH .. ".bkp");
+nbt = NBT.load(LEVELDATPATH);
 data = nbt:get("Data");
 player = data:get("Player");
 inventory = player:get("Inventory");

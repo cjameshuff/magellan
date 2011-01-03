@@ -24,7 +24,7 @@ if(ITEM_ID == nil) then
     os.exit();
 end
 
-nbt = NBT.load(LEVELDATPATH .. ".bkp");
+nbt = NBT.load(LEVELDATPATH);
 data = nbt:get("Data");
 player = data:get("Player");
 inventory = player:get("Inventory");
