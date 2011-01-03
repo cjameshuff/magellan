@@ -32,7 +32,12 @@ magellan dumpinv 4
 Existing scripts:
 ditto.lua INPUT_FILE OUTPUT_FILE - copy input file to output file. Only really useful for testing NBT loading and writing.
 dump.lua INPUT_FILE - dump contents of NBT file in human-readable format.
-dumpinv.lua WORLD_NUMBER - dump player inventory listing for world
+dumpinv.lua WORLD_NUMBER - dump player inventory listing for world.
+addinv.lua WORLD_NUMBER INV_ITEM [COUNT] - add item(s) to an open slot in inventory.
 undamage.lua WORLD_NUMBER - remove all damage from items in the player inventory.
 
 mcdefs.lua - various definitions used in the other scripts
+
+
+Demo scripts:
+maprender.lua - map rendering demo, summary of render settings.
