@@ -1,0 +1,660 @@
+//******************************************************************************
+//    Copyright (c) 2010, Christopher James Huff
+//    All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//******************************************************************************
+
+
+#include "nbtv8.h"
+
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#include <sys/stat.h>
+#include <errno.h>
+
+#include "misc.h"
+
+#include "nbt.h"
+
+using namespace std;
+using namespace v8;
+
+// http://create.tpsitulsa.com/blog/2009/01/29/v8-objects/
+
+static Persistent<FunctionTemplate> nbtCons;
+
+
+//******************************************************************************
+
+static Handle<Value> NBT_newByte(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    int val = args[1]->IntegerValue();
+    return WrapNBT(new NBT_TagByte(tagName, val));
+}
+
+static Handle<Value> NBT_newShort(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    int val = args[1]->IntegerValue();
+    return WrapNBT(new NBT_TagShort(tagName, val));
+}
+
+static Handle<Value> NBT_newInteger(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    int32_t val = args[1]->IntegerValue();
+    return WrapNBT(new NBT_TagInt(tagName, val));
+}
+
+// TODO: figure out proper support for long integers
+static Handle<Value> NBT_newLong(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    int64_t val = args[1]->IntegerValue();
+    return WrapNBT(new NBT_TagLong(tagName, val));
+}
+
+static Handle<Value> NBT_newFloat(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    float val = args[1]->NumberValue();
+    return WrapNBT(new NBT_TagFloat(tagName, val));
+}
+
+static Handle<Value> NBT_newDouble(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    float val = args[1]->NumberValue();
+    return WrapNBT(new NBT_TagDouble(tagName, val));
+}
+
+static Handle<Value> NBT_newString(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    string tagName = *String::Utf8Value(args[0]->ToString());
+    string val = *String::Utf8Value(args[1]->ToString());
+    return WrapNBT(new NBT_TagString(tagName, val));
+}
+
+static Handle<Value> NBT_newByteArray(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    NBT_TagByteArray * nbt = new NBT_TagByteArray();
+    nbt->name = *String::Utf8Value(args[0]->ToString());
+    nbt->value.resize(args[1]->IntegerValue());
+    return WrapNBT(nbt);
+}
+
+static Handle<Value> NBT_newCompound(const Arguments & args) {
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    NBT_TagCompound * nbt = new NBT_TagCompound();
+    nbt->name = *String::Utf8Value(args[0]->ToString());
+    return WrapNBT(nbt);
+}
+
+static Handle<Value> NBT_newList(const Arguments & args) {
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    NBT_TagList * nbt = new NBT_TagList();
+    nbt->name = *String::Utf8Value(args[0]->ToString());
+    return WrapNBT(nbt);
+}
+
+//******************************************************************************
+
+#define V8NBT_Error(msg)  return ThrowException(String::New(msg));
+
+#define checkNBT(var, val) NBT_Tag * var; do { \
+    Handle<Object> obj = Handle<Object>::Cast(val); \
+    Handle<External> wrap = Handle<External>::Cast(obj->GetInternalField(0)); \
+    var = static_cast<NBT_Tag *>(wrap->Value()); \
+} while(0)
+
+
+#define checkNBT_Byte(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagByte *>(ud); \
+    if(var == NULL) V8NBT_Error("'Byte NBT' expected"); \
+} while(0)
+#define checkNBT_Short(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagShort *>(ud); \
+    if(var == NULL) V8NBT_Error("'Short NBT' expected"); \
+} while(0)
+#define checkNBT_Integer(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagInt *>(ud); \
+    if(var == NULL) V8NBT_Error("'Integer NBT' expected"); \
+} while(0)
+#define checkNBT_Long(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagLong *>(ud); \
+    if(var == NULL) V8NBT_Error("'Long NBT' expected"); \
+} while(0)
+#define checkNBT_Float(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagFloat *>(ud); \
+    if(var == NULL) V8NBT_Error("'Float NBT' expected"); \
+} while(0)
+#define checkNBT_Double(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagDouble *>(ud); \
+    if(var == NULL) V8NBT_Error("'Double NBT' expected"); \
+} while(0)
+#define checkNBT_String(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagString *>(ud); \
+    if(var == NULL) V8NBT_Error("'String NBT' expected"); \
+} while(0)
+
+#define checkNBT_ByteArray(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagByteArray *>(ud); \
+    if(var == NULL) V8NBT_Error("'String NBT' expected"); \
+} while(0)
+
+#define checkNBT_Compound(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagCompound *>(ud); \
+    if(var == NULL) V8NBT_Error("'Compound NBT' expected"); \
+} while(0)
+
+#define checkNBT_List(var, val)  NBT_TagByte * var; do { checkNBT(ud, val); \
+    var = dynamic_cast<NBT_TagList *>(ud); \
+    if(var == NULL) V8NBT_Error("'List NBT' expected"); \
+} while(0)
+
+//******************************************************************************
+
+
+static Handle<Value> NBT_GetValue(Local<String> property, const AccessorInfo & info) {
+    Local<External> wrap = Local<External>::Cast(info.Holder()->GetInternalField(0));
+    NBT_Tag * nbt = static_cast<NBT_Tag *>(wrap->Value());
+    switch(nbt->Type()) {
+        case kNBT_TAG_End: return Undefined(); break;
+        case kNBT_TAG_Byte: return Integer::New(static_cast<NBT_TagByte *>(nbt)->value); break;
+        case kNBT_TAG_Short: return Integer::New(static_cast<NBT_TagShort *>(nbt)->value); break;
+        case kNBT_TAG_Int: return Integer::New(static_cast<NBT_TagInt *>(nbt)->value); break;
+        case kNBT_TAG_Long: return Integer::New(static_cast<NBT_TagLong *>(nbt)->value); break;
+        case kNBT_TAG_Float: return Number::New(static_cast<NBT_TagFloat *>(nbt)->value); break;
+        case kNBT_TAG_Double: return Number::New(static_cast<NBT_TagDouble *>(nbt)->value); break;
+        case kNBT_TAG_Byte_Array: return Undefined(); break; // TODO: something more useful
+        case kNBT_TAG_String:
+            return String::New(static_cast<NBT_TagString *>(nbt)->value.c_str());
+        break;
+        case kNBT_TAG_List: return Undefined(); break; // TODO: something more useful
+        case kNBT_TAG_Compound: return Undefined(); break; // TODO: something more useful
+        case kNBT_NumTagTypes: return Undefined(); break; // TODO: something more useful
+    }
+    return Undefined();
+}
+
+static void NBT_SetValue(Local<String> property, Local<Value> value, const AccessorInfo & info) {
+    Local<External> wrap = Local<External>::Cast(info.Holder()->GetInternalField(0));
+    NBT_Tag * nbt = static_cast<NBT_Tag *>(wrap->Value());
+    switch(nbt->Type()) {
+        case kNBT_TAG_End: break;
+        case kNBT_TAG_Byte:
+            static_cast<NBT_TagByte *>(nbt)->value = value->IntegerValue();
+        break;
+        case kNBT_TAG_Short:
+            static_cast<NBT_TagShort *>(nbt)->value = value->IntegerValue();
+        break;
+        case kNBT_TAG_Int:
+            static_cast<NBT_TagInt *>(nbt)->value = value->IntegerValue();
+        break;
+        case kNBT_TAG_Long:
+            static_cast<NBT_TagLong *>(nbt)->value = value->IntegerValue();
+        break;
+        case kNBT_TAG_Float:
+            static_cast<NBT_TagFloat *>(nbt)->value = value->NumberValue();
+        break;
+        case kNBT_TAG_Double:
+            static_cast<NBT_TagDouble *>(nbt)->value = value->NumberValue();
+        break;
+        case kNBT_TAG_Byte_Array: break; // TODO: something more useful
+        case kNBT_TAG_String:
+            static_cast<NBT_TagString *>(nbt)->value = 
+                *String::Utf8Value(value->ToString());
+        break;
+        case kNBT_TAG_List: break; // TODO: something more useful
+        case kNBT_TAG_Compound: break; // TODO: something more useful
+        case kNBT_NumTagTypes: break; // TODO: something more useful
+    }
+}
+
+
+// "index()" and "newindex()" were originally overrides for the [] operator in
+// Lua. index() is a straightforward lookup, newindex() is an assignment.
+static Handle<Value> NBT_index(const Arguments & args)
+{
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    Local<External> wrap = Local<External>::Cast(args.This()->GetInternalField(0));
+    NBT_Tag * nbt = static_cast<NBT_Tag *>(wrap->Value());
+    if(nbt->Type() == kNBT_TAG_Compound)
+    {
+        // TODO: allow indexing compound by number, for iteration purposes?
+        NBT_TagCompound * nbtcomp = static_cast<NBT_TagCompound *>(nbt);
+        string key = *String::Utf8Value(args[0]->ToString());
+        return WrapNBT(nbtcomp->GetTag<NBT_Tag>(key));
+    }
+    else if(nbt->Type() == kNBT_TAG_List)
+    {
+        NBT_TagList * nbtlist = static_cast<NBT_TagList *>(nbt);
+        size_t index = args[0]->IntegerValue();
+        return WrapNBT(nbtlist->values[index]);
+    }
+    else if(nbt->Type() == kNBT_TAG_Byte_Array)
+    {
+        NBT_TagByteArray * nbtba = static_cast<NBT_TagByteArray *>(nbt);
+        int index = args[0]->IntegerValue();
+        if(index < 0 || index >= (int)nbtba->value.size())
+            return ThrowException(String::New("invalid index"));
+        return Integer::New(nbtba->value[index]);
+    }
+    return ThrowException(String::New("Can't index this type"));
+}
+
+static Handle<Value> NBT_newindex(const Arguments & args)
+{
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    if(nbt->Type() == kNBT_TAG_Compound)
+    {
+        // Insert or replace a NBT
+        // NBT is inserted under its own name
+        // TODO: key-value variant?
+        NBT_TagCompound * nbtcomp = static_cast<NBT_TagCompound *>(nbt);
+        NBT_Tag * value = ExternVal<NBT_Tag>(args[0]);
+        nbtcomp->SetTag(value);
+        return Undefined();
+    }
+    else if(nbt->Type() == kNBT_TAG_List)
+    {
+        // Replace a NBT
+        // TODO: if setting values is allowed to create entries,
+        // set type from type of first entry added
+        NBT_TagList * nbtlist = static_cast<NBT_TagList *>(nbt);
+        int index = args[0]->IntegerValue();
+        NBT_Tag * value = ExternVal<NBT_Tag>(args[1]);
+        if(index < 0 || index >= (int)nbtlist->values.size())
+            return ThrowException(String::New("invalid index"));
+        if(value->Type() != nbtlist->ValueType())
+            return ThrowException(String::New("inserted item doesn't match list type"));
+        
+        if(nbtlist->values[index] != NULL)
+            delete nbtlist->values[index];
+        nbtlist->values[index] = value;
+        return Undefined();
+    }
+    else if(nbt->Type() == kNBT_TAG_Byte_Array)
+    {
+        // Set a byte value
+        NBT_TagByteArray * nbtba = static_cast<NBT_TagByteArray *>(nbt);
+        int index = args[0]->IntegerValue();
+        int value = args[1]->IntegerValue();
+        if(index < 0 || index >= (int)nbtba->value.size())
+            return ThrowException(String::New("invalid index"));
+        nbtba->value[index] = value;
+        return Undefined();
+    }
+    return ThrowException(String::New("Can't index this type"));
+}
+
+
+// Add an item to the end of a list
+static Handle<Value> NBT_push_back(const Arguments & args)
+{
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    
+    if(nbt->Type() != kNBT_TAG_List)
+        return ThrowException(String::New("push_back() only valid for list tags"));
+    
+    NBT_TagList * nbtlist = static_cast<NBT_TagList *>(nbt);
+    NBT_Tag * value = ExternVal<NBT_Tag>(args[0]);
+    if(value && value->Type() != nbtlist->ValueType())
+        return ThrowException(String::New("inserted item doesn't match list type"));
+    nbtlist->values.push_back(value);
+    return Undefined();
+}
+
+static Handle<Value> NBT_erase(const Arguments & args)
+{
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    
+    if(nbt->Type() == kNBT_TAG_Compound)
+    {
+//        NBT_TagCompound * nbtcomp = checkNBT_Compound(L, 1);
+        //nbtcomp->SetTag(checkNBT(L, 2));
+        return ThrowException(String::New("erasing compound members not yet implemented"));
+    }
+    else if(nbt->Type() == kNBT_TAG_List)
+    {
+        // erase a NBT list element
+        // TODO: if setting values is allowed to create entries,
+        // set type from type of first entry added
+        NBT_TagList * nbtlist = static_cast<NBT_TagList *>(nbt);
+        int index = args[0]->IntegerValue();
+        if(index < 0 || index >= (int)nbtlist->values.size())
+            return ThrowException(String::New("invalid index"));
+        delete nbtlist->values[index];
+        nbtlist->values.erase(nbtlist->values.begin() + index);
+    }
+    else
+    {
+        return ThrowException(String::New("NBT must be a compound or list"));
+    }
+    return Undefined();
+}
+
+static Handle<Value> NBT_resize(const Arguments & args)
+{
+    if(args.Length() != 1 && args.Length() != 2)
+        return ThrowException(String::New("Bad parameters"));
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    
+    if(nbt->Type() == kNBT_TAG_List)
+    {
+        if(args.Length() != 1)
+            return ThrowException(String::New("Bad parameters"));
+        NBT_TagList * nbtlist = static_cast<NBT_TagList *>(nbt);
+        int size = args[0]->IntegerValue();
+        if(size < (int)nbtlist->values.size()) {
+            // delete elements if shrinking
+            for(size_t j = size - 1; j < nbtlist->values.size(); ++j)
+                delete nbtlist->values[j];
+        }
+        nbtlist->values.resize(size, NULL);
+    }
+    else if(nbt->Type() == kNBT_TAG_Byte_Array)
+    {
+        if(args.Length() != 2)
+            return ThrowException(String::New("Bad parameters"));
+        // Set a byte value
+        NBT_TagByteArray * nbtba = static_cast<NBT_TagByteArray *>(nbt);
+        int size = args[0]->IntegerValue();
+        int value = args[1]->IntegerValue();
+        nbtba->value.resize(size, value);
+    }
+    else
+    {
+        return ThrowException(String::New("NBT must be a list or byte array"));
+    }
+    return Undefined();
+}
+
+static Handle<Value> NBT_size(const Arguments & args)
+{
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    if(nbt->Type() == kNBT_TAG_Compound)
+    {
+        NBT_TagList * nbtlist = dynamic_cast<NBT_TagList *>(nbt);
+        return Integer::New(nbtlist->values.size());
+    }
+    else if(nbt->Type() == kNBT_TAG_List)
+    {
+        NBT_TagList * nbtlist = dynamic_cast<NBT_TagList *>(nbt);
+        return Integer::New(nbtlist->values.size());
+    }
+    else if(nbt->Type() == kNBT_TAG_Byte_Array)
+    {
+        NBT_TagByteArray * nbtba = static_cast<NBT_TagByteArray *>(nbt);
+        return Integer::New(nbtba->value.size());
+    }
+    else
+    {
+        return ThrowException(String::New("NBT must be a composite, byte array, or list tag"));
+    }
+    return Undefined();
+}
+
+//static Handle<Value> NBT_names(const Arguments & args)
+//static int Lua_NBT_names(lua_State * L)
+//{
+//    // Return a table of names for a composite tag
+//    // TODO: implement iterator
+//    NBT_Tag * nbt = checkNBT(L, 1);
+//    if(nbt->Type() == kNBT_TAG_Compound)
+//    {
+//        NBT_TagCompound * nbtcomp = checkNBT_Compound(L, 1);
+//        lua_newtable(L);
+//        for(size_t i = 0; i < nbtcomp->tags.size(); ++i) {
+//            lua_pushnumber(L, i + 1);
+//            lua_pushstring(L, nbtcomp->tags[i]->name.c_str());
+//            lua_settable(L, -3);
+//        }
+//    }
+//    else
+//    {
+//        luaL_argcheck(L, false, 1, "NBT must be a composite tag");
+//    }
+//    return Undefined();
+//}
+
+
+//******************************************************************************
+// Miscellaneous functions
+//******************************************************************************
+static Handle<Value> NBT_load(const Arguments & args)
+{
+    // TODO: return a NBT_Root or something garbage collectable...?
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    string nbtpath = *String::Utf8Value(args[0]->ToString());
+//    cerr << "Loading \"" << nbtpath << "\"" << endl;
+    return WrapNBT(LoadNBT_File(nbtpath));
+}
+
+
+static Handle<Value> NBT_dump(const Arguments & args)
+{
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+//	printf("Dumping NBT object %p\n", nbt);
+    nbt->Print(std::cout);
+    return Undefined();
+}
+
+
+static Handle<Value> NBT_write(const Arguments & args)
+{
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    string outputFilePath = *String::Utf8Value(args[0]->ToString());
+    
+    gzFile fout = gzopen(outputFilePath.c_str(), "wb");
+    if(!fout) {
+        cerr << "Could not open \"" << outputFilePath << "\"" << endl;
+        int errnum;
+        cerr << "ZLib error: \"" << gzerror(fout, &errnum) << "\"" << endl;
+        gzclose(fout);
+        abort();
+    }
+    nbt->Write(fout);
+    gzclose(fout);
+    return Undefined();
+}
+
+static Handle<Value> NBT_type(const Arguments & args) {
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    return Integer::New(nbt->Type());
+}
+
+static Handle<Value> NBT_name(const Arguments & args) {
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    return String::New(nbt->name.c_str());
+}
+
+static Handle<Value> RunScript(const Arguments & args)
+{
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    string scriptName = *String::Utf8Value(args[0]->ToString());
+    RunMagellanScript(scriptName);
+    return Undefined();
+}
+//******************************************************************************
+
+void RunMagellanScript(const std::string & scriptName)
+{
+    string path = scriptName;
+    
+    struct stat stbuf;
+    if(stat(path.c_str(), &stbuf) != 0)
+    {
+        // Couldn't find file, look in magellan directory
+        path = MCPath() + "/magellan/scripts/" + scriptName;
+//        cerr << scriptName << " doesn't exist, trying " << path << endl;
+        
+        // If not there, try adding an extension.
+        if(stat(path.c_str(), &stbuf) != 0) {
+//            cerr << path << " doesn't exist, trying " << (path + ".js") << endl;
+            path = path + ".js";
+        }
+    }
+    
+    if(stat(path.c_str(), &stbuf) != 0) {
+        // Still can't find it. Just try the path as is.
+        path = scriptName;
+    }
+    
+//	printf("Running file: %s\n", path.c_str());
+    ExecuteJS_File(path);
+}
+
+//******************************************************************************
+
+static Handle<Value> NBT_toString(const Arguments & args)
+{
+    if(args.Length() != 0) return ThrowException(String::New("Bad parameters"));
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    ostringstream os;
+    nbt->Print(os);
+    return String::New(os.str().c_str());
+}
+
+static void weakNBT_CB(Persistent<Value> obj, void * param)
+{
+    NBT_Tag * nbt = static_cast<NBT_Tag *>(param);
+    delete nbt;
+    obj.Dispose();
+    obj.Clear();
+}
+
+static Handle<Value> ConstructNBT(const Arguments & args)
+{
+    // Note: not actually used to construct NBT objects from JS.
+    HandleScope handle_scope;
+    Handle<External> wrapper;
+    
+	if(!args.IsConstructCall()) return ThrowException(String::New("Cannot call constructor as function"));
+    if(args.Length() == 2 || args.Length() > 3) return ThrowException(String::New("Bad parameters"));
+    
+    if(args[0]->IsExternal())
+    {
+        // Passed an external: called from C++
+        // Does not own NBT_Tag (at this point) and does not delete it when collected.
+        wrapper = Handle<External>::Cast(args[0]);
+    }
+    else
+    {
+        // Passed JS object(s)
+        //NBT_Tag * nbt = ;
+        
+        //wrapper = External::New(nbt);*/
+        
+//        Persistent<Object> cleanerHandle = Persistent<Object>::New(args.This());
+//        cleanerHandle.MakeWeak(nbt, weakNBT_CB);// NBT_Tag is owned by JS object
+    }
+    args.This()->SetInternalField(0, wrapper);
+    return args.This();
+}
+
+// Wrap an existing NBT
+Handle<Object> WrapNBT(NBT_Tag * nbt) {
+    HandleScope handle_scope;
+    Handle<Value> ext = External::New(nbt);
+    Handle<Object> new_nbt = nbtCons->GetFunction()->NewInstance(1, &ext);
+    return handle_scope.Close(new_nbt);
+}
+
+// Create a new NBT
+// TODO
+//Handle<Object> NewNBT(const NBT_Tag & nbt) {
+//    HandleScope handle_scope;
+//    NBT_Tag * nbt = ;
+//    Handle<Value> ext = External::New(nbt);
+//    Handle<Object> new_nbt = nbtCons->GetFunction()->NewInstance(1, &ext);
+//    
+//    Persistent<Object> cleanerHandle = Persistent<Object>::New(new_nbt);
+//    cleanerHandle.MakeWeak(nbt, weakNBT_CB);// NBT_Tag is owned by JS object
+//    return handle_scope.Close(new_nbt);
+//}
+
+
+void V8NBT_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
+{
+    global->Set(String::New("run_script"), FunctionTemplate::New(RunScript));
+    
+    HandleScope handle_scope;
+    Handle<FunctionTemplate> lnbtCons = FunctionTemplate::New(ConstructNBT);
+    nbtCons = Persistent<FunctionTemplate>::New(lnbtCons);
+    global->Set(String::New("NBT"), nbtCons);
+    
+    // Class methods
+    lnbtCons->Set(String::New("load"), FunctionTemplate::New(NBT_load));
+    
+    lnbtCons->Set(String::New("new_compound"),   FunctionTemplate::New(NBT_newCompound));
+    lnbtCons->Set(String::New("new_list"),       FunctionTemplate::New(NBT_newList));
+    lnbtCons->Set(String::New("new_byte"),       FunctionTemplate::New(NBT_newByte));
+    lnbtCons->Set(String::New("new_short"),      FunctionTemplate::New(NBT_newShort));
+    lnbtCons->Set(String::New("new_integer"),    FunctionTemplate::New(NBT_newInteger));
+    lnbtCons->Set(String::New("new_long"),       FunctionTemplate::New(NBT_newLong));
+    lnbtCons->Set(String::New("new_float"),      FunctionTemplate::New(NBT_newFloat));
+    lnbtCons->Set(String::New("new_double"),     FunctionTemplate::New(NBT_newDouble));
+    lnbtCons->Set(String::New("new_string"),     FunctionTemplate::New(NBT_newString));
+    lnbtCons->Set(String::New("new_byte_array"), FunctionTemplate::New(NBT_newByteArray));
+    
+    
+    Handle<ObjectTemplate> nbtIT = lnbtCons->InstanceTemplate();
+    nbtIT->SetInternalFieldCount(1);
+    
+    nbtIT->Set(String::New("toString"), FunctionTemplate::New(NBT_toString));
+    
+    nbtIT->Set(String::New("dump"), FunctionTemplate::New(NBT_dump));
+    nbtIT->Set(String::New("write"), FunctionTemplate::New(NBT_write));
+    
+    // May be a better way to do these
+    nbtIT->Set(String::New("TAG_End"),       Integer::New(kNBT_TAG_End));
+    nbtIT->Set(String::New("TAG_Compound"),  Integer::New(kNBT_TAG_Compound));
+    nbtIT->Set(String::New("TAG_List"),      Integer::New(kNBT_TAG_List));
+    nbtIT->Set(String::New("TAG_ByteArray"), Integer::New(kNBT_TAG_Byte_Array));
+    nbtIT->Set(String::New("TAG_Byte"),      Integer::New(kNBT_TAG_Byte));
+    nbtIT->Set(String::New("TAG_Short"),     Integer::New(kNBT_TAG_Short));
+    nbtIT->Set(String::New("TAG_Int"),       Integer::New(kNBT_TAG_Int));
+    nbtIT->Set(String::New("TAG_Long"),      Integer::New(kNBT_TAG_Long));
+    nbtIT->Set(String::New("TAG_Float"),     Integer::New(kNBT_TAG_Float));
+    nbtIT->Set(String::New("TAG_Double"),    Integer::New(kNBT_TAG_Double));
+    nbtIT->Set(String::New("TAG_String"),    Integer::New(kNBT_TAG_String));
+    
+    // TODO: make accessors for type, name, size...
+    nbtIT->Set(String::New("type"), FunctionTemplate::New(NBT_type));
+    nbtIT->Set(String::New("name"), FunctionTemplate::New(NBT_name));
+    
+    nbtIT->SetAccessor(String::New("value"), NBT_GetValue, NBT_SetValue);
+    
+    nbtIT->Set(String::New("get"), FunctionTemplate::New(NBT_index));
+    nbtIT->Set(String::New("set"), FunctionTemplate::New(NBT_newindex));
+    nbtIT->Set(String::New("push_back"), FunctionTemplate::New(NBT_push_back));
+    nbtIT->Set(String::New("erase"), FunctionTemplate::New(NBT_erase));
+    nbtIT->Set(String::New("resize"), FunctionTemplate::New(NBT_resize));
+    nbtIT->Set(String::New("size"), FunctionTemplate::New(NBT_size));
+}
+
+//******************************************************************************

@@ -1,43 +1,49 @@
 Requirements:
 zlib
 libpng
-Lua
+V8
 
 Currently, some needed libraries are built and linked statically when building on Mac OS X. These need to be downloaded:
 wget http://zlib.net/zlib-1.2.5.tar.gz
 wget http://download.sourceforge.net/libpng/libpng-1.4.5.tar.gz
 make libs
 
-For both Linux and OS X, you'll need to get Lua as well:
-wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
+For both Linux and OS X, you'll need to get V8 as well:
+http://code.google.com/apis/v8/build.html
 
-No more needs to be done with this, the makefile will unpack and build Lua on its own. Then the build process is simply:
+Follow the directions on that page to download V8 into the Magellan directory and build it. No installation is needed, V8 is statically linked.
+
+
+Once the needed libraries are in place, the build process for Magellan is simply:
 make
 make install
 
 By default, the makefile installs binaries in ~/bin and puts some data files and scripts into a "magellan" directory in the Minecraft directory, the exact location of which depends on platform.
 
-nbtutil is a Lua script interpreter with functionality added for loading and writing NBT files. magellan has the same interpreter and bindings, but also has a map loader and renderer. nbtutil is thus a bit superfluous at this point...it may be extended in the future with functionality that distinguishes it from magellan, or removed entirely.
 
-Usage is identical for both:
-nbtutil SCRIPT [SCRIPTARGS]
-magellan SCRIPT [SCRIPTARGS]
+At the core of Magellan is a ECMAScript (JavaScript) interpreter with bindings for loading and writing NBT files, as well as a map loader and renderer. Only low level operations and those which are particularly computationally expensive are built into the binary, high level operations are performed using scripts...the toolkit may thus be customized and extended without a development environment.
 
-The first argument is the script/command to perform, later arguments depend on the script/command being executed. It is first interpreted as a path, and if a file exists at that location it is executed as a Lua script. If no file exists, the magellan scripts directory is searched next. If there's still no match, a .lua extension is added and the scripts directory is searched again. For example:
+Usage:
+magellan COMMAND [SCRIPTARGS]
 
-magellan myscripts/mydumpinv.lua 4
-magellan dumpinv.lua 4
+The first argument is the script/command to perform, later arguments depend on the script/command being executed. It is first interpreted as a path, and if a file exists at that location it is executed as a command script. If no file exists, the magellan scripts directory is searched next. If there's still no match, a .js extension is added and the scripts directory is searched again. For example:
+
+magellan myscripts/mydumpinv.js 4
+magellan dumpinv.js 4
 magellan dumpinv 4
 
-Existing scripts:
-ditto.lua INPUT_FILE OUTPUT_FILE - copy input file to output file. Only really useful for testing NBT loading and writing.
-dump.lua INPUT_FILE - dump contents of NBT file in human-readable format.
-dumpinv.lua WORLD_NUMBER - dump player inventory listing for world.
-addinv.lua WORLD_NUMBER INV_ITEM [COUNT] - add item(s) to an open slot in inventory.
-undamage.lua WORLD_NUMBER - remove all damage from items in the player inventory.
+The complete set of arguments is passed into the script environment as a global ARGV variable. There is also a MCPATH variable representing the location of the Minecraft folder on the system.
 
-mcdefs.lua - various definitions used in the other scripts
+
+Existing scripts:
+ditto.js INPUT_FILE OUTPUT_FILE - copy input file to output file. Only really useful for testing NBT loading and writing.
+dump.js INPUT_FILE - dump contents of NBT file in human-readable format.
+dumpinv.js WORLD_NUMBER - dump player inventory listing for world.
+addinv.js WORLD_NUMBER INV_ITEM [COUNT] - add item(s) to an open slot in inventory.
+undamage.js WORLD_NUMBER - remove all damage from items in the player inventory.
+
+mcdefs.js - various definitions used in the other scripts
 
 
 Demo scripts:
-maprender.lua - map rendering demo, summary of render settings.
+maprender.js - map rendering demo, summary of render settings.

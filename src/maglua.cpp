@@ -233,22 +233,22 @@ static int RenderMap(lua_State * L)
     
     
     if(dmode == "alt") {
-        opts.displayMode = kLightingAltitude;
+        opts.lightingMode = kLightingAltitude;
     }
     else if(dmode == "altgray") {
-        opts.displayMode = kLightingAltitudeGray;
+        opts.lightingMode = kLightingAltitudeGray;
     }
     else if(dmode == "day") {
-        opts.displayMode = kLightingDay;
+        opts.lightingMode = kLightingDay;
     }
     else if(dmode == "night") {
-        opts.displayMode = kLightingNight;
+        opts.lightingMode = kLightingNight;
     }
     else if(dmode == "morning") {
-        opts.displayMode = kLightingMorning;
+        opts.lightingMode = kLightingMorning;
     }
     else if(dmode == "evening") {
-        opts.displayMode = kLightingEvening;
+        opts.lightingMode = kLightingEvening;
     }
     else {
         cerr << "Display mode " << dmode << " not supported!" << endl;

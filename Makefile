@@ -22,10 +22,10 @@
 
 CXX = g++
 
-OPT = -O0
-#OPT = -O3
+#OPT = -O0
+OPT = -O3
 
-CFLAGS = -Wall -g ${OPT} -Izlib/include -Ilibpng/include -Ilua/etc -Ilua/src
+CFLAGS = -Wall -g ${OPT} -Izlib/include -Ilibpng/include -Ilua/etc -Ilua/src -Iv8/include
 
 INSTALLDIR = $(HOME)/bin
 MCIMAGEFILES = terrain.png misc/grasscolor.png misc/foliagecolor.png
@@ -34,18 +34,18 @@ ifeq ($(shell uname -s), Darwin)
 	CFLAGS += -DMACOSX
 	LUABUILD = macosx
 	MCDIR = Library/Application\ Support/minecraft
-	LIBS = zlib/libz.a libpng/lib/libpng.a lua/src/liblua.a
+	LIBS = zlib/libz.a libpng/lib/libpng.a lua/src/liblua.a v8/libv8.a
 else
 	CFLAGS += -DLINUX
 	LUABUILD = linux
 	MCDIR = .minecraft
-	LIBS = -lz -lpng lua/src/liblua.a -ldl
+	LIBS = -lz -lpng lua/src/liblua.a v8/libv8.a -ldl
 endif
 
 # This may be a bad idea...
 MGLNDIR = $(MCDIR)/magellan
 
-all: lua magellan nbtutil
+all: magellan
 
 libs:
 	tar -xf zlib-1.2.5.tar.gz; mv zlib-1.2.5 zlib
@@ -53,21 +53,19 @@ libs:
 	tar -xf libpng-1.4.5.tar.gz
 	cd libpng-1.4.5; ./configure --prefix=`pwd`/../libpng --disable-shared; make; make install
 
-lua:
-	tar -xf lua-5.1.4.tar.gz; mv lua-5.1.4 lua
-	cd lua; make $(LUABUILD)
+#lua:
+#	tar -xf lua-5.1.4.tar.gz; mv lua-5.1.4 lua
+#	cd lua; make $(LUABUILD)
 
-nbtutil: src/nbtutil.cpp.o src/nbt.cpp.o src/nbtlua.cpp.o lua/src/liblua.a
-	$(CXX) src/nbtutil.cpp.o src/nbt.cpp.o src/nbtlua.cpp.o $(LIBS) -o nbtutil
-
-magellan: src/magellan.cpp.o src/maglua.cpp.o src/nbtlua.cpp.o src/mc.cpp.o src/nbt.cpp.o lua/src/liblua.a
-	$(CXX) src/magellan.cpp.o src/maglua.cpp.o src/nbtlua.cpp.o src/mc.cpp.o src/nbt.cpp.o $(LIBS) -o magellan
+#magellan: src/magellan.cpp.o src/maglua.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/nbtlua.cpp.o src/mc.cpp.o src/nbt.cpp.o lua/src/liblua.a
+#	$(CXX) src/magellan.cpp.o src/maglua.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/nbtlua.cpp.o src/mc.cpp.o src/nbt.cpp.o $(LIBS) -o magellan
+magellan: src/magellan.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/mc.cpp.o src/nbt.cpp.o
+	$(CXX) src/magellan.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/mc.cpp.o src/nbt.cpp.o $(LIBS) -o magellan
 
 src/%.cpp.o: src/%.cpp
 	$(CXX) -c $(CFLAGS) $< -o $@
 
-install: nbtutil magellan
-	cp nbtutil $(INSTALLDIR)/nbtutil
+install: magellan
 	cp magellan $(INSTALLDIR)/magellan
 	mkdir -p $(HOME)/$(MGLNDIR)
 	mkdir -p $(HOME)/$(MGLNDIR)/scripts
@@ -79,7 +77,6 @@ clean_all: clean
 	rm -rf zlib
 	rm -rf libpng-1.4.4
 	rm -rf libpng
-	rm nbtutil
 	rm magellan
 
 clean:

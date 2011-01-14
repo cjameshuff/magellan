@@ -26,6 +26,7 @@
 
 #include "nbt.h"
 #include "nbtlua.h"
+#include "nbtv8.h"
 #include "mc.h"
 #include "array2d.h"
 
@@ -51,7 +52,7 @@ struct MagellanOptions {
     
 //    int lighting;
     
-    int displayMode;
+    int lightingMode;
     bool layers;
     
     int yMin, yMax;
@@ -66,8 +67,7 @@ struct MagellanOptions {
     
     MagellanOptions():
         outputFile("output.png"),
-//        worldNum(1), dimension(0),
-        displayMode(kLightingAltitude),
+        lightingMode(kLightingAltitude),
         yMin(1), yMax(127),
         xMin(INT_MIN), xMax(INT_MAX),
         zMin(INT_MIN), zMax(INT_MAX),
@@ -90,6 +90,7 @@ extern MC_World world;
 //******************************************************************************
 
 void MGL_Init(lua_State * lua);
+void MGV8_InitBindings(v8::Handle<v8::ObjectTemplate> & global);
 
 void RenderMap(const MagellanOptions & opts);
 

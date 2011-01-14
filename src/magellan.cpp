@@ -52,6 +52,10 @@
 #include <set>
 #include <algorithm>
 
+
+#include "v8base.h"
+#include "nbtv8.h"
+
 #include "magellan.h"
 
 #include "misc.h"
@@ -91,22 +95,41 @@ int main(int argc, char * argv[])
 	LoadTextures();
 	//cout << "Textures loaded" << endl;
     
-    lua_State * lua = NBT_InitLua();
+//    lua_State * lua = NBT_InitLua();
+//    
+//    lua_newtable(lua);
+//    for(int i = 0; i < argc; ++i) {
+//        lua_pushnumber(lua, i + 1);
+//        lua_pushstring(lua, argv[i]);
+//        lua_settable(lua, -3);
+//    }
+//    lua_setglobal(lua, "ARGV");
+//    
+//    lua_pushstring(lua, MCPath().c_str());
+//    lua_setglobal(lua, "MCPATH");
+//    
+//    MGL_Init(lua);
+//    NBT_RunLuaScript(argv[1]);
     
+//    using namespace v8;
     
-    lua_newtable(lua);
-    for(int i = 0; i < argc; ++i) {
-        lua_pushnumber(lua, i + 1);
-        lua_pushstring(lua, argv[i]);
-        lua_settable(lua, -3);
-    }
-    lua_setglobal(lua, "ARGV");
+    v8::HandleScope handle_scope;
+    v8::Handle<v8::ObjectTemplate> global_tmpl = V8_InitBase();
+    V8NBT_InitBindings(global_tmpl);
+    MGV8_InitBindings(global_tmpl);
     
-    lua_pushstring(lua, MCPath().c_str());
-    lua_setglobal(lua, "MCPATH");
+    v8::Persistent<v8::Context> context = v8::Context::New(NULL, global_tmpl);
+    v8::Context::Scope context_scope(context);
+    v8::Handle<v8::Object> global = context->Global();
     
-    MGL_Init(lua);
-    NBT_RunLuaScript(argv[1]);
+    global->Set(v8::String::New("MCPATH"), v8::String::New(MCPath().c_str()));
+    
+    v8::Handle<v8::Array> V8ARGV = v8::Array::New(argc);
+    for(int i = 0; i < argc; ++i)
+        V8ARGV->Set(v8::Number::New(i), v8::String::New(argv[i]));
+    global->Set(v8::String::New("ARGV"), V8ARGV);
+    
+    RunMagellanScript(argv[1]);
     
 	return EXIT_SUCCESS;
 }
@@ -316,7 +339,7 @@ void DrawTop(SimpleImage & outputImage, const MagellanOptions & opts)
                 int32_t by = block - low + opts.yMin;
                 // FIXME: can go out of range at topmost layer
                 float light = 1;
-                switch(opts.displayMode) {
+                switch(opts.lightingMode) {
                   case kLightingAltitude:
                   case kLightingAltitudeGray:// TODO: implement gray
                     light = (float)(by - opts.yMin)/(opts.yMax - opts.yMin);
