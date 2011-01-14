@@ -69,12 +69,11 @@ const std::string kBlockTypeNames[] = {
     "Sponge",       // 0x13
     "Glass",        // 0x14
     
-    // Cloth
-    "RedCloth",     // 0x15
-    "OrangeCloth",  // 0x16
-    "YellowCloth",  // 0x17
-    "LimeCloth",    // 0x18
-    "GreenCloth",   // 0x19
+    "LapisOre",     // 0x15
+    "LapisBlock",   // 0x16
+    "Dispenser",    // 0x17
+    "Sandstone",    // 0x18
+    "NoteBlock",    // 0x19
     "AquaGreenCloth", // 0x1A
     "CyanCloth",    // 0x1B
     "BlueCloth",    // 0x1C
@@ -144,7 +143,8 @@ const std::string kBlockTypeNames[] = {
     "SlowSand",     // 0x58
     "LightStone",   // 0x59
     "Portal",       // 0x5A
-    "GlowingPumpkin" // 0x5B
+    "GlowingPumpkin", // 0x5B
+    "CakeBlock"     // 0x5C
 };
 
 //******************************************************************************

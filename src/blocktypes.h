@@ -78,12 +78,11 @@ enum {
     kBT_Sponge = 0x13,
     kBT_Glass = 0x14,
     
-    // Cloth
-    kBT_RedCloth = 0x15,
-    kBT_OrangeCloth = 0x16,
-    kBT_YellowCloth = 0x17,
-    kBT_LimeCloth = 0x18,
-    kBT_GreenCloth = 0x19,
+    kBT_LapisOre = 0x15,
+    kBT_LapisBlock = 0x16,
+    kBT_Dispenser = 0x17,
+    kBT_Sandstone = 0x18,
+    kBT_NoteBlock = 0x19,
     kBT_AquaGreenCloth = 0x1A,
     kBT_CyanCloth = 0x1B,
     kBT_BlueCloth = 0x1C,
@@ -154,6 +153,7 @@ enum {
     kBT_LightStone = 0x59,
     kBT_Portal = 0x5A,
     kBT_GlowingPumpkin = 0x5B,
+    kBT_CakeBlock = 0x5C,
     kNumBlockTypes
 };
 #endif // BLOCKTYPES_H
