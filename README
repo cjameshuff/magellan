@@ -35,14 +35,37 @@ magellan dumpinv 4
 The complete set of arguments is passed into the script environment as a global ARGV variable. There is also a MCPATH variable representing the location of the Minecraft folder on the system.
 
 
-Existing scripts:
-ditto.js INPUT_FILE OUTPUT_FILE - copy input file to output file. Only really useful for testing NBT loading and writing.
-dump.js INPUT_FILE - dump contents of NBT file in human-readable format.
-dumpinv.js WORLD_NUMBER - dump player inventory listing for world.
-addinv.js WORLD_NUMBER INV_ITEM [COUNT] - add item(s) to an open slot in inventory.
-undamage.js WORLD_NUMBER - remove all damage from items in the player inventory.
+Existing scripts/commands:
 
-mcdefs.js - various definitions used in the other scripts
+ditto INPUT_FILE OUTPUT_FILE
+    Copy input file to output file. Only really useful for testing NBT loading and writing.
+
+
+dump INPUT_FILE
+    Dump contents of NBT file in human-readable format.
+
+
+dumpinv WORLD_NUMBER
+    Dump player inventory listing for world.
+
+
+addinv WORLD_NUMBER INV_ITEM [COUNT]
+    Add item(s) to an open slot in inventory. WORLD_NUMBER INV_ITEM is the name of the item to be added, refer to mcdefs.js for a list. Note that several block types can not be obtained in-game, but are valid inventory items...leaves and the various ores, for example. Some are not.
+
+Example:
+magellan addinv 4 CoalOre 64
+
+
+givedyes WORLD_NUMBER
+Populates the inventory with a full stack of each dye type, if room is available.
+
+
+undamage WORLD_NUMBER
+Remove all damage from items in the player inventory.
+
+
+mcdefs.js
+    Not a script itself, this file contains various definitions used in the other scripts, including the names and numeric IDs of all block and item types. A useful reference for item names.
 
 
 Demo scripts:
