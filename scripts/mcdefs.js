@@ -16,109 +16,102 @@ var ARMOR_SLOTS = {
     "helmet": 103,
 };
 
-// TODO: this is what it is for historical reasons, reformat table.
-// Possibly store more block/item information in table.
-var BLOCK_NAMES = [
-    "Air",          // 0x00
-    "Stone",        // 0x01
-    "Grass",        // 0x02
-    "Dirt",         // 0x03
-    "Cobblestone",  // 0x04
-    "Wood",         // 0x05
-    "Sapling",      // 0x06
-    "Bedrock",      // 0x07
-    "Water",        // 0x08
-    "WaterPooled",  // 0x09
-    "Lava",         // 0x0A
-    "LavaPooled",   // 0x0B
-    "Sand",         // 0x0C
-    "Gravel",       // 0x0D
-    "GoldOre",      // 0x0E
-    "IronOre",      // 0x0F
+// Item IDs referenced by item name
+// TODO:
+// Possibly store more block/item information in table. Whether an item is
+// inventory-safe, etc.
+var BLOCK_NAMES = {
+    "Air":           0x00,
+    "Stone":         0x01,
+    "Grass":         0x02,
+    "Dirt":          0x03,
+    "Cobblestone":   0x04,
+    "Wood":          0x05,
+    "Sapling":       0x06,
+    "Bedrock":       0x07,
+    "Water":         0x08,
+    "WaterPooled":   0x09,
+    "Lava":          0x0A,
+    "LavaPooled":    0x0B,
+    "Sand":          0x0C,
+    "Gravel":        0x0D,
+    "GoldOre":       0x0E,
+    "IronOre":       0x0F,
     
-    "CoalOre",      // 0x10
-    "Log",          // 0x11
-    "Leaves",       // 0x12
-    "Sponge",       // 0x13
-    "Glass",        // 0x14
+    "CoalOre":       0x10,
+    "Log":           0x11,
+    "Leaves":        0x12,
+    "Sponge":        0x13,
+    "Glass":         0x14,
     
-    "LapisOre",     // 0x15
-    "LapisBlock",   // 0x16
-    "Dispenser",    // 0x17
-    "Sandstone",    // 0x18
-    "NoteBlock",    // 0x19
-    "AquaGreenCloth", // 0x1A
-    "CyanCloth",    // 0x1B
-    "BlueCloth",    // 0x1C
-    "PurpleCloth",  // 0x1D
-    "IndigoCloth",  // 0x1E
-    "VioletCloth",  // 0x1F
-    "MagentaCloth", // 0x20
-    "PinkCloth",    // 0x21
-    "BlackCloth",   // 0x22
-    "GrayCloth",    // 0x23
-    "WhiteCloth",   // 0x24
+    "LapisOre":      0x15,
+    "LapisBlock":    0x16,
+    "Dispenser":     0x17,
+    "Sandstone":     0x18,
+    "NoteBlock":     0x19,
+    // 0x1A-0x22 and 0x24 are unused
+    "Wool":          0x23,
     
-    "YellowFlower", // 0x25
-    "RedRose",      // 0x26
-    "BrownMushroom", // 0x27
-    "RedMushroom",  // 0x28
-    "GoldBlock",    // 0x29
-    "IronBlock",    // 0x2A
-    "DoubleStep",   // 0x2B
-    "Step",         // 0x2C
-    "Brick",        // 0x2D
-    "TNT",          // 0x2E
-    "BookCase",     // 0x2F
+    "YellowFlower":   0x25,
+    "RedRose":        0x26,
+    "BrownMushroom":  0x27,
+    "RedMushroom":    0x28,
+    "GoldBlock":      0x29,
+    "IronBlock":      0x2A,
+    "DoubleStep":     0x2B,
+    "Step":           0x2C,
+    "Brick":          0x2D,
+    "TNT":            0x2E,
+    "BookCase":       0x2F,
     
-    "MossyCobblestone", // 0x30
-    "Obsidian",     // 0x31
-    "Torch",        // 0x32
-    "Fire",         // 0x33
-    "MobSpawner",   // 0x34
-    "WoodStairs",   // 0x35
-    "Chest",        // 0x36
-    "RedstoneWire", // 0x37
-    "DiamondOre",   // 0x38
-    "DiamondBlock", // 0x39
-    "Workbench",    // 0x3A
-    "Crops",        // 0x3B
-    "Soil",         // 0x3C
-    "Furnace",      // 0x3D
-    "BurningFurnace", // 0x3E
-    "SignPost",     // 0x3F
+    "MossyCobblestone":  0x30,
+    "Obsidian":          0x31,
+    "Torch":             0x32,
+    "Fire":              0x33,
+    "MobSpawner":        0x34,
+    "WoodStairs":        0x35,
+    "Chest":             0x36,
+    "RedstoneWire":      0x37,
+    "DiamondOre":        0x38,
+    "DiamondBlock":      0x39,
+    "Workbench":         0x3A,
+    "Crops":             0x3B,
+    "Soil":              0x3C,
+    "Furnace":           0x3D,
+    "BurningFurnace":    0x3E,
+    "SignPost":          0x3F,
     
-    "WoodDoor",     // 0x40
-    "Ladder",       // 0x41
-    "MinecartTrack", // 0x42
-    "CobblestoneStairs", // 0x43
-    "WallSign",     // 0x44
-    "Lever",        // 0x45
-    "StonePressurePlate", // 0x46
-    "IronDoor",     // 0x47
-    "WoodPressurePlate", // 0x48
-    "RedstoneOre", // 0x49
-    "GlowingRedstoneOre", // 0x4A
-    "RedstoneTorchOff", // 0x4B
-    "RedstoneTorchOn", // 0x4C
-    "StoneButton",  // 0x4D
-    "Snow",         // 0x4E
-    "Ice",          // 0x4F
+    "WoodDoor":            0x40,
+    "Ladder":              0x41,
+    "MinecartTrack":       0x42,
+    "CobblestoneStairs":   0x43,
+    "WallSign":            0x44,
+    "Lever":               0x45,
+    "StonePressurePlate":  0x46,
+    "IronDoor":            0x47,
+    "WoodPressurePlate":   0x48,
+    "RedstoneOre":         0x49,
+    "GlowingRedstoneOre":  0x4A,
+    "RedstoneTorchOff":    0x4B,
+    "RedstoneTorchOn":     0x4C,
+    "StoneButton":         0x4D,
+    "Snow":                0x4E,
+    "Ice":                 0x4F,
     
-    "SnowBlock",    // 0x50
-    "Cactus",       // 0x51
-    "Clay",         // 0x52
-    "SugarCaneBlock",// 0x53
-    "Jukebox",      // 0x54
-    "Fence",        // 0x55
-    "Pumpkin",      // 0x56
-    "Netherstone",  // 0x57
-    "SlowSand",     // 0x58
-    "LightStone",   // 0x59
-    "Portal",       // 0x5A
-    "GlowingPumpkin", // 0x5B
-    "CakeBlock"     // 0x5C
-];
+    "SnowBlock":       0x50,
+    "Cactus":          0x51,
+    "Clay":            0x52,
+    "SugarCaneBlock":  0x53,
+    "Jukebox":         0x54,
+    "Fence":           0x55,
+    "Pumpkin":         0x56,
+    "Netherstone":     0x57,
+    "SlowSand":        0x58,
+    "LightStone":      0x59,
+    "Portal":          0x5A,
+    "GlowingPumpkin":  0x5B,
+    "CakeBlock":       0x5C
+};
 
 
 var ITEM_NAMES = {}
@@ -254,3 +247,57 @@ for(var i in BLOCK_NAMES)
 for(var i in ITEM_IDS)
     ITEM_NAMES[ITEM_IDS[i]] = i;
 
+
+function LoadLevelDat(worldNum)
+{
+    var WORLDPATH = MCPATH + "/saves/World" + worldNum;
+    var LEVELDATPATH = WORLDPATH + "/level.dat";
+    return NBT.load(LEVELDATPATH);
+}
+
+function WriteLevelDat(level_dat, worldNum) {
+    // Make backup of old version and write new level.dat
+    var WORLDPATH = MCPATH + "/saves/World" + worldNum;
+    var LEVELDATPATH = WORLDPATH + "/level.dat";
+    var err = os.rename(LEVELDATPATH, LEVELDATPATH + ".bkp");
+    if(err != 0) {
+        printf("Could not backup data file: %@\n", LEVELDATPATH);
+        os.exit()
+    }
+    level_dat.write(LEVELDATPATH);
+}
+
+function GetFreeInvSlots(level_dat)
+{
+    // Empty slots have no entries, so we mark all the filled ones and then return
+    // the unmarked ones.
+    var invslots = [];
+    for(var i = 0; i < 36; ++i)
+        invslots[i] = true;
+    
+    var inventory = level_dat.get("Data").get("Player").get("Inventory");
+    for(var i = 0; i < inventory.size(); ++i) {
+        var item = inventory.get(i);
+        var slot = item.get("Slot").value;
+    //    printf("%@ of %@ in slot %@, damage %@", count, ITEM_NAMES[id], slot, damage);
+        invslots[slot] = false;
+    }
+    
+    var freeslots = [];
+    for(var i = 0; i < 36; ++i)
+        if(invslots[i])
+            freeslots[freeslots.length] = i;
+    
+    return freeslots;
+}
+
+function AddInvItem(level_dat, itemID, damage, count, slot) {
+    var inventory = level_dat.get("Data").get("Player").get("Inventory");
+    printf("Adding %@ to slot %@\n", ITEM_NAMES[itemID], slot);
+    var item = NBT.new_compound("");
+    item.set(NBT.new_short("id", itemID))
+    item.set(NBT.new_short("Damage", damage))
+    item.set(NBT.new_byte("Count", count))
+    item.set(NBT.new_byte("Slot", slot))
+    inventory.push_back(item);
+}

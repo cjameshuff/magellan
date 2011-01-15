@@ -11,65 +11,26 @@ if(ARGV.length < 4) {
 
 run_script("mcdefs.js");
 
-var WORLDPATH = MCPATH + "/saves/World" + ARGV[2];
-
-var LEVELDATPATH = WORLDPATH + "/level.dat";
-
-var ITEM = ARGV[3];
-var ITEM_ID = ITEM_IDS[ITEM];
-var ITEMCOUNT = (ARGV.length >= 4)? ARGV[4] : 1;
-
-if(ITEM_ID == null) {
+var worldNum = ARGV[2];
+var itemID = ITEM_IDS[ARGV[3]];
+var itemCount = (ARGV.length >= 4)? ARGV[4] : 1;
+if(itemID == null) {
     println("Unknown item type specified.");
     os.exit();
 }
 
-var nbt = NBT.load(LEVELDATPATH);
-var data = nbt.get("Data");
-var player = data.get("Player");
-var inventory = player.get("Inventory");
+level_dat = LoadLevelDat(worldNum);
+freeslots = GetFreeInvSlots(level_dat);
+
+var inventory = level_dat.get("Data").get("Player").get("Inventory");
 //println(inventory);
-
-
 printf("Inventory items: %@\n", inventory.size());
 
-invslots = {};
-for(var i = 0; i < 36; ++i)
-    invslots[i] = true;
-
-for(var i = 0; i < inventory.size(); ++i) {
-    var item = inventory.get(i);
-    var slot = item.get("Slot").value;
-//    printf("%@ of %@ in slot %@, damage %@", count, ITEM_NAMES[id], slot, damage);
-    invslots[slot] = false;
-}
-
-itemAdded = false;
-for(var i = 0; i < 36; ++i)
-{
-    if(invslots[i] == true)
-    {
-        printf("Adding %@ to slot %@\n", ITEM_NAMES[ITEM_ID], i);
-        item = NBT.new_compound("");
-        item.set(NBT.new_short("id", ITEM_ID))
-        item.set(NBT.new_short("Damage", 0))
-        item.set(NBT.new_byte("Count", ITEMCOUNT))
-        item.set(NBT.new_byte("Slot", i))
-        inventory.push_back(item);
-        itemAdded = true;
-        break;
-    }
-}
-
-if(!itemAdded) {
+if(freeslots.length == 0) {
     println("No empty item slots!");
     os.exit();
 }
 
-// Make backup and write new level.dat
-var err = os.rename(LEVELDATPATH, LEVELDATPATH + ".bkp");
-if(err != 0) {
-    printf("Could not backup data file: %@\n", LEVELDATPATH);
-    os.exit()
-}
-nbt.write(LEVELDATPATH);
+AddInvItem(level_dat, itemID, 0, itemCount, freeslots[0]);
+
+WriteLevelDat(level_dat, worldNum);
