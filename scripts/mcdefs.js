@@ -20,7 +20,8 @@ var ARMOR_SLOTS = {
 // TODO:
 // Possibly store more block/item information in table. Whether an item is
 // inventory-safe, etc.
-var BLOCK_NAMES = {
+var BLOCK_NAMES = {}
+var BLOCK_IDS = {
     "Air":           0x00,
     "Stone":         0x01,
     "Grass":         0x02,
@@ -238,6 +239,10 @@ var DYE_IDS = {
     "Orange":          0xE,
     "BoneMeal":        0xF
 };
+
+// Generate reverse lookup table mapping IDs to names
+for(var i in BLOCK_IDS)
+    BLOCK_NAMES[BLOCK_IDS[i]] = i;
 
 // Add block names to table of item IDs
 for(var i in BLOCK_NAMES)
