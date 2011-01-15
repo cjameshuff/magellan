@@ -1,8 +1,8 @@
 // Remove damage from all inventory items, including armor. One parameter, world number.
 
 if(ARGV.length < 3) {
-    println("\nundamage.lua usage:");
-    println("\tmagellan undamage.lua WORLDNUM");
+    println("\nundamage usage:");
+    println("\tmagellan undamage WORLDNUM");
     exit();
 }
 

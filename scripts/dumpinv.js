@@ -1,8 +1,8 @@
 // Dump inventory. One parameter, world number.
 
 if(ARGV.length < 3) {
-    println("\ndumpinv.js usage:");
-    println("\tnbtutil dumpinv.lua WORLDNUM");
+    println("\ndumpinv usage:");
+    println("\tnbtutil dumpinv WORLDNUM");
     exit()
 }
 

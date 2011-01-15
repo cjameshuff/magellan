@@ -3,7 +3,7 @@
 if(ARGV.length < 4) {
     println("\naddinv usage:");
     println("\tmagellan addinv WORLDNUM ITEM ITEMCOUNT");
-    println("\nItem and block names are those listed in mcdefs.lua");
+    println("\nItem and block names are those listed in mcdefs.js");
     println("\nIf item count is not specified, 1 is assumed.");
     println("\nItem(s) will be placed in first empty inventory position encountered.");
     os.exit()
