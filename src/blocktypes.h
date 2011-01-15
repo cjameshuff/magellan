@@ -24,6 +24,8 @@
 #ifndef BLOCKTYPES_H
 #define BLOCKTYPES_H
 
+#include "pngimage.h"
+
 enum {
     kBS_Top,
     kBS_Bottom,
@@ -157,4 +159,7 @@ enum {
     kBT_CakeBlock = 0x5C,
     kNumBlockTypes
 };
+
+void LoadTextures();
+
 #endif // BLOCKTYPES_H

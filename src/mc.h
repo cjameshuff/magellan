@@ -24,8 +24,8 @@
 // http://minecraftwiki.net/wiki/Alpha_Level_Format
 // http://minecraftwiki.net/wiki/Map_Format_(NBT)
 
-#ifndef ALPHA_H
-#define ALPHA_H
+#ifndef MINECRAFT_H
+#define MINECRAFT_H
 
 #include <stdint.h>
 
@@ -133,7 +133,5 @@ struct MC_World {
     MC_Chunk * ChunkAt(int x, int z) {return chunks[x - xChunkMin][z - zChunkMin];}
 };
 
-void LoadTextures();
-
 //******************************************************************************
-#endif // ALPHA_H
+#endif // MINECRAFT_H

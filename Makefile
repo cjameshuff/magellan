@@ -27,6 +27,9 @@ OPT = -O3
 
 CFLAGS = -Wall -g ${OPT} -Izlib/include -Ilibpng/include -Iv8/include
 
+OBJS = src/magellan.cpp.o src/mc.cpp.o src/blocktypes.cpp.o src/nbt.cpp.o
+OBJS += src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o
+
 INSTALLDIR = $(HOME)/bin
 MCIMAGEFILES = terrain.png misc/grasscolor.png misc/foliagecolor.png
 
@@ -59,8 +62,8 @@ libs:
 
 #magellan: src/magellan.cpp.o src/maglua.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/nbtlua.cpp.o src/mc.cpp.o src/nbt.cpp.o lua/src/liblua.a
 #	$(CXX) src/magellan.cpp.o src/maglua.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/nbtlua.cpp.o src/mc.cpp.o src/nbt.cpp.o $(LIBS) -o magellan
-magellan: src/magellan.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/mc.cpp.o src/nbt.cpp.o
-	$(CXX) src/magellan.cpp.o src/v8base.cpp.o src/nbtv8.cpp.o src/magv8.cpp.o src/mc.cpp.o src/nbt.cpp.o $(LIBS) -o magellan
+magellan: ${OBJS}
+	$(CXX) ${OBJS} $(LIBS) -o magellan
 
 src/%.cpp.o: src/%.cpp
 	$(CXX) -c $(CFLAGS) $< -o $@

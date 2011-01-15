@@ -25,12 +25,9 @@
 #define MAGELLAN_H
 
 #include "nbt.h"
-#include "nbtlua.h"
 #include "nbtv8.h"
 #include "mc.h"
 #include "array2d.h"
-
-#include "pngimage.h"
 
 #include <string>
 
@@ -89,7 +86,6 @@ extern MC_World world;
 
 //******************************************************************************
 
-void MGL_Init(lua_State * lua);
 void MGV8_InitBindings(v8::Handle<v8::ObjectTemplate> & global);
 
 void RenderMap(const MagellanOptions & opts);
