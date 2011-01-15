@@ -79,16 +79,16 @@ var BLOCK_NAMES = {
     "Soil":              0x3C,
     "Furnace":           0x3D,
     "BurningFurnace":    0x3E,
-    "SignPost":          0x3F,
+    "SignPost":          0x3F,// sign placed on a post
     
-    "WoodDoor":            0x40,
+    "WoodDoorBlock":       0x40,
     "Ladder":              0x41,
     "MinecartTrack":       0x42,
     "CobblestoneStairs":   0x43,
-    "WallSign":            0x44,
+    "WallSign":            0x44,// sign hung on a wall
     "Lever":               0x45,
     "StonePressurePlate":  0x46,
-    "IronDoor":            0x47,
+    "IronDoorBlock":       0x47,
     "WoodPressurePlate":   0x48,
     "RedstoneOre":         0x49,
     "GlowingRedstoneOre":  0x4A,
