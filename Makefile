@@ -25,7 +25,7 @@ CXX = g++
 #OPT = -O0
 OPT = -O3
 
-CFLAGS = -Wall -g ${OPT} -Izlib/include -Ilibpng/include -Ilua/etc -Ilua/src -Iv8/include
+CFLAGS = -Wall -g ${OPT} -Izlib/include -Ilibpng/include -Iv8/include
 
 INSTALLDIR = $(HOME)/bin
 MCIMAGEFILES = terrain.png misc/grasscolor.png misc/foliagecolor.png
@@ -34,12 +34,12 @@ ifeq ($(shell uname -s), Darwin)
 	CFLAGS += -DMACOSX
 	LUABUILD = macosx
 	MCDIR = Library/Application\ Support/minecraft
-	LIBS = zlib/libz.a libpng/lib/libpng.a lua/src/liblua.a v8/libv8.a
+	LIBS = zlib/libz.a libpng/lib/libpng.a v8/libv8.a
 else
 	CFLAGS += -DLINUX
 	LUABUILD = linux
 	MCDIR = .minecraft
-	LIBS = -lz -lpng lua/src/liblua.a v8/libv8.a -ldl
+	LIBS = -lz -lpng v8/libv8.a -ldl
 endif
 
 # This may be a bad idea...
@@ -73,7 +73,6 @@ install: magellan
 	cd $(HOME)/$(MGLNDIR); jar -xf $(HOME)/$(MCDIR)/bin/minecraft.jar ${MCIMAGEFILES}
 
 clean_all: clean
-	rm -rf lua
 	rm -rf zlib
 	rm -rf libpng-1.4.4
 	rm -rf libpng
