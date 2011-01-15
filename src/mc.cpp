@@ -235,36 +235,35 @@ void LoadTextures()
     LoadTexture(kBT_BookCase, 3, 2);
     LoadTexture(kBT_MossyCobblestone, 4, 2);
     LoadTexture(kBT_Obsidian, 5, 2);
-    //LoadTexture(kBT_, 6, 2);
-    //LoadTexture(kBT_, 7, 2);
-    //LoadTexture(kBT_, 8, 2);
-    //LoadTexture(kBT_, 9, 2);
-    //LoadTexture(kBT_, 10, 2);
-    LoadTexture(kBT_Workbench, 11, 2);
+    //LoadTexture(kBT_, 6, 2);// unused
+    //LoadTexture(kBT_, 7, 2);// unused
+    //LoadTexture(kBT_, 8, 2);// unused
+    //LoadTexture(kBT_, 9, 2);// Large chest front left
+    //LoadTexture(kBT_, 10, 2);// Large chest front right
+    LoadTexture(kBT_Workbench, 11, 2);// Workbench top
     //LoadTexture(kBT_Furnace, 12, 2);// Furnace front dark
     //LoadTexture(kBT_, 13, 2);// Furnace side/back
-    //LoadTexture(kBT_, 14, 2);// unused
-    //LoadTexture(kBT_, 15, 2);// unused
+    LoadTexture(kBT_Dispenser, 14, 2);// unused
+    //LoadTexture(kBT_, 15, 2);// Fire 2
     
     LoadTexture(kBT_Sponge, 0, 3);
     LoadTexture(kBT_Glass, 1, 3, false);
     LoadTexture(kBT_DiamondOre, 2, 3);
     LoadTexture(kBT_RedstoneOre, 3, 3);
+    // TODO: color these properly, along with grass
     LoadTexture(kBT_Leaves, 4, 3, false, 0.35f, 0.65f, 0.1f);
-    // More leaves?
-    //LoadTexture(kBT_, 6, 3);
-    //LoadTexture(kBT_, 7, 3);
-    //LoadTexture(kBT_, 8, 3);
-    //LoadTexture(kBT_, 9, 3);
-    //LoadTexture(kBT_, 10, 3);
-    //LoadTexture(kBT_, 11, 3);
-    //LoadTexture(kBT_, 12, 3);
+    //LoadTexture(kBT_, 6, 3);// unused
+    //LoadTexture(kBT_, 7, 3);// unused
+    //LoadTexture(kBT_, 8, 3);// unused
+    //LoadTexture(kBT_, 9, 3);// large chest back 1
+    //LoadTexture(kBT_, 10, 3);// large chest back 2
+    //LoadTexture(kBT_, 11, 3);// workbench, side 1
+    //LoadTexture(kBT_, 12, 3);// workbench, side 2
     LoadTexture(kBT_Furnace, 13, 3);// Furnace front fired
-    //LoadTexture(kBT_, 14, 3);// unused
+    //LoadTexture(kBT_, 14, 3);// Furnace top
     //LoadTexture(kBT_, 15, 3);// unused
     
-    LoadTexture(kBT_GrayCloth, 0, 4);
-    LoadTexture(kBT_WhiteCloth, 0, 4);
+    LoadTexture(kBT_Wool, 0, 4);
     LoadTexture(kBT_MobSpawner, 1, 4, false);// Fire cage..."mob spawner"?
     LoadTexture(kBT_Snow, 2, 4);
     LoadTexture(kBT_Ice, 3, 4, false);
@@ -274,8 +273,8 @@ void LoadTextures()
     //LoadTexture(kBT_, 7, 4);// cactus slice top/bottom
     LoadTexture(kBT_Clay, 8, 4);
     LoadTexture(kBT_Reed, 9, 4, false);
-    //LoadTexture(kBT_, 10, 4);// 
-    //LoadTexture(kBT_, 11, 4);// 
+    LoadTexture(kBT_NoteBlock, 10, 4);// 
+    LoadTexture(kBT_Jukebox, 11, 4);// jukebox top
     //LoadTexture(kBT_, 12, 4);// unused
     //LoadTexture(kBT_, 13, 4);// unused
     //LoadTexture(kBT_, 14, 4);// unused
@@ -291,21 +290,36 @@ void LoadTextures()
     
     LoadTexture(kBT_RedstoneTorchOn, 3, 6, false);
     LoadTexture(kBT_RedstoneWire, 4, 6, false);// Need to do more intelligent redstone rendering
-    
-    LoadTexture(kBT_RedstoneTorchOff, 3, 7, false);
-    
-    LoadTexture(kBT_MinecartTrack, 0, 8, false);
-    
-    LoadTexture(kBT_Pumpkin, 7, 6);
-    LoadTexture(kBT_GlowingPumpkin, 8, 6);
+    //LoadTexture(kBT_, 5, 6);// redstone wire, one way
+    //LoadTexture(kBT_, 6, 6);// Pumpkin top
     LoadTexture(kBT_Netherstone, 7, 6);
-    LoadTexture(kBT_SlowSand, 8, 6);// NetherDirt
+    LoadTexture(kBT_SlowSand, 8, 6);
     LoadTexture(kBT_LightStone, 9, 6);
     
+    LoadTexture(kBT_RedstoneTorchOff, 3, 7, false);
+    //LoadTexture(kBT_, 4, 7);// Dark bark
+    //LoadTexture(kBT_, 5, 7);// Birch bark
+    //LoadTexture(kBT_, 6, 7);// Pumpkin side
+    LoadTexture(kBT_Pumpkin, 7, 7);// Pumpkin face
+    LoadTexture(kBT_GlowingPumpkin, 8, 7);
+    
+    LoadTexture(kBT_MinecartTrack, 0, 8, false);
+    LoadTexture(kBT_CakeBlock, 12, 8, false);
+    
+    LoadTexture(kBT_LapisBlock, 0, 9);
+    
+    LoadTexture(kBT_LapisOre, 0, 10);
+    
+//    LoadTexture(kBT_Sandstone, 0, 11);// sandstone top
+    
+    LoadTexture(kBT_Sandstone, 0, 12);// sandstone side
     LoadTexture(kBT_Water, 13, 12, false);
     LoadTexture(kBT_WaterPooled, 13, 12, false);
+    
     LoadTexture(kBT_Lava, 15, 15);
     LoadTexture(kBT_LavaPooled, 15, 15);
+    
+    // TODO: need to support multiple textures per block type, multiple cloth colors and log types
 }
 
 //******************************************************************************
