@@ -452,13 +452,25 @@ static Handle<Value> NBT_size(const Arguments & args)
 //******************************************************************************
 static Handle<Value> NBT_load(const Arguments & args)
 {
-    // TODO: return a NBT_Root or something garbage collectable...?
     if(args.Length() != 1) V8_ReturnError("Bad parameters");
     string nbtpath = StringValue(args[0]);
 //    cerr << "Loading \"" << nbtpath << "\"" << endl;
     return WrapNBT(LoadNBT_File(nbtpath));
 }
 
+// Frees memory used by the NBT structure. Should only be called on the root
+// NBT, and references to the deleted NBT should not be used.
+// TODO: more complete bindings, build a new data structure out of JS objects
+// rather than wrapping individual parts of an existing NBT structure. This
+// is just a quick hack to make it possible to manipulate lots of NBTs without
+// causing massive memory leaks.
+static Handle<Value> NBT_delete(const Arguments & args)
+{
+    if(args.Length() != 1) V8_ReturnError("Bad parameters");
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args[0]);
+    delete nbt;
+    return Undefined();
+}
 
 static Handle<Value> NBT_dump(const Arguments & args)
 {
@@ -614,6 +626,7 @@ void V8NBT_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     
     // Class methods
     lnbtCons->Set(String::New("load"), FunctionTemplate::New(NBT_load));
+    lnbtCons->Set(String::New("delete"), FunctionTemplate::New(NBT_delete));
     
     lnbtCons->Set(String::New("new_compound"),   FunctionTemplate::New(NBT_newCompound));
     lnbtCons->Set(String::New("new_list"),       FunctionTemplate::New(NBT_newList));
