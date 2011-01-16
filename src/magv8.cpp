@@ -50,7 +50,7 @@ static Handle<Value> MCMap_write(const Arguments & args) {
     return Undefined();
 }
 
-static Handle<Value> MCMap_getblock(const Arguments & args) {
+static Handle<Value> MCMap_get_block(const Arguments & args) {
     if(args.Length() != 3) return ThrowException(String::New("Bad parameters"));
     MC_World * world = ExternVal<MC_World>(args.This());
     int x = args[0]->IntegerValue();
@@ -66,7 +66,7 @@ static Handle<Value> MCMap_getblock(const Arguments & args) {
     return blockObj;
 }
 
-static Handle<Value> MCMap_setblock(const Arguments & args) {
+static Handle<Value> MCMap_set_block(const Arguments & args) {
     if(args.Length() < 4 || args.Length() > 7) return ThrowException(String::New("Bad parameters"));
     int x = args[0]->IntegerValue();
     int y = args[1]->IntegerValue();
@@ -103,6 +103,30 @@ static Handle<Value> MCMap_setblock(const Arguments & args) {
     return Undefined();
 }
 
+static Handle<Value> MCMap_get_chunk_nbt(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    MC_World * world = ExternVal<MC_World>(args.This());
+    int x = args[0]->IntegerValue();
+    int z = args[1]->IntegerValue();
+    MC_Chunk * chunk = world->ChunkAt(x, z);
+    if(chunk)
+        return WrapNBT(chunk->GetChunkNBT());
+    else
+        return Null();
+}
+static Handle<Value> MCMap_get_all_chunk_nbts(const Arguments & args) {
+    if(args.Length() != 0) return ThrowException(String::New("Bad parameters"));
+    MC_World * world = ExternVal<MC_World>(args.This());
+    std::vector<MC_Chunk *> & chunks = world->GetAllChunks();
+    
+    v8::Handle<v8::Array> chunkListObj = v8::Array::New(chunks.size());
+    for(size_t j = 0; j < chunks.size(); ++j)
+        chunkListObj->Set(Integer::New(j), WrapNBT(chunks[j]->GetChunkNBT()));
+    return chunkListObj;
+}
+
+// Entities and tile entities are stored in each chunk.
+
 static Handle<Value> MCMap_render(const Arguments & args) {
     return Undefined();
 }
@@ -117,13 +141,15 @@ static Handle<Value> MCMap_stats(const Arguments & args) {
 static void weakMC_World_CB(Persistent<Value> obj, void * param)
 {
     MC_World * world = static_cast<MC_World *>(param);
-    delete world;
+    if(world)
+        delete world;
     obj.Dispose();
     obj.Clear();
 }
 
 static Handle<Value> ConstructMC_World(const Arguments & args)
 {
+    cerr << "ConstructMC_World()" << endl;
     HandleScope handle_scope;
     Handle<External> wrapper;
     
@@ -132,6 +158,7 @@ static Handle<Value> ConstructMC_World(const Arguments & args)
     
     if(args.Length() > 0 && args[0]->IsExternal())
     {
+        cerr << "Wrapping existing world" << endl;
         // Passed an external: constructed from C++. Does not own object, will not
         // clean it up.
         wrapper = Handle<External>::Cast(args[0]);
@@ -140,11 +167,12 @@ static Handle<Value> ConstructMC_World(const Arguments & args)
     {
         // No arguments or passed JS object: constructed from JavaScript
         MC_World * world = new MC_World;
+        cerr << "Constructing new world" << endl;
         
         if(args.Length() > 0) {
             string mcWorldPath = StringValue(args[0]);
+            cerr << "Loading world: " << mcWorldPath << endl;
             world->Load(mcWorldPath);
-            return WrapMC_World(world);
         }
         
         wrapper = External::New(world);
@@ -314,8 +342,10 @@ void MGV8_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     mapIT->SetInternalFieldCount(1);
     
     mapIT->Set(String::New("write"), FunctionTemplate::New(MCMap_write));
-    mapIT->Set(String::New("getblock"), FunctionTemplate::New(MCMap_getblock));
-    mapIT->Set(String::New("setblock"), FunctionTemplate::New(MCMap_setblock));
+    mapIT->Set(String::New("get_block"), FunctionTemplate::New(MCMap_get_block));
+    mapIT->Set(String::New("set_block"), FunctionTemplate::New(MCMap_set_block));
+    mapIT->Set(String::New("get_all_chunk_nbts"), FunctionTemplate::New(MCMap_get_all_chunk_nbts));
+    mapIT->Set(String::New("get_chunk_nbt"), FunctionTemplate::New(MCMap_get_chunk_nbt));
     mapIT->Set(String::New("stats"), FunctionTemplate::New(MCMap_stats));
     mapIT->Set(String::New("render"), FunctionTemplate::New(MCMap_render));
     

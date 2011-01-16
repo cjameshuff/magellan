@@ -179,8 +179,10 @@ class MC_World {
     void AddChunk(MC_Chunk * chunk);
     void RebuildGrid();
     
-//    MC_Block GetBlock(int32_t x, int32_t y, int32_t z) const;
-//    void SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z);
+    
+    std::vector<MC_Chunk *> & GetAllChunks() {return allChunks;}
+    const std::vector<MC_Chunk *> & GetAllChunks() const {return allChunks;}
+    
     
     // Get chunk at given chunk location. Return NULL if location is out of bounds
     // or has no chunk. Location is in chunk coordinates, which are block coordinates/16.

@@ -403,8 +403,8 @@ static Handle<Value> NBT_size(const Arguments & args)
     NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
     if(nbt->Type() == kNBT_TAG_Compound)
     {
-        NBT_TagList * nbtlist = dynamic_cast<NBT_TagList *>(nbt);
-        return Integer::New(nbtlist->values.size());
+        NBT_TagCompound * nbtcomp = dynamic_cast<NBT_TagCompound *>(nbt);
+        return Integer::New(nbtcomp->tagsByName.size());
     }
     else if(nbt->Type() == kNBT_TAG_List)
     {
@@ -421,6 +421,40 @@ static Handle<Value> NBT_size(const Arguments & args)
         V8_ReturnError("NBT must be a composite, byte array, or list tag");
     }
     return Undefined();
+}
+
+static Handle<Value> NBT_contents(const Arguments & args) {
+    if(args.Length() != 0) return ThrowException(String::New("Bad parameters"));
+    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
+    
+    if(nbt->Type() == kNBT_TAG_Compound)
+    {
+        NBT_TagCompound * nbtcomp = dynamic_cast<NBT_TagCompound *>(nbt);
+        v8::Handle<v8::Array> contents = v8::Array::New(nbtcomp->tagsByName.size());
+        std::map<std::string, NBT_Tag *>::iterator tag;
+        for(tag = nbtcomp->tagsByName.begin(); tag != nbtcomp->tagsByName.end(); ++tag)
+            contents->Set(String::New(tag->first.c_str()), WrapNBT(tag->second));
+        
+        return contents;
+    }
+    else if(nbt->Type() == kNBT_TAG_List)
+    {
+        NBT_TagList * nbtlist = dynamic_cast<NBT_TagList *>(nbt);
+        v8::Handle<v8::Array> contents = v8::Array::New(nbtlist->values.size());
+        for(size_t j = 0; j < nbtlist->values.size(); ++j)
+            contents->Set(Integer::New(j), WrapNBT(nbtlist->values[j]));
+        return contents;
+    }
+    else if(nbt->Type() == kNBT_TAG_Byte_Array)
+    {
+        // Note that contents of byte arrays must be returned by value
+        NBT_TagByteArray * nbtba = static_cast<NBT_TagByteArray *>(nbt);
+        v8::Handle<v8::Array> contents = v8::Array::New(nbtba->value.size());
+        for(size_t j = 0; j < nbtba->value.size(); ++j)
+            contents->Set(Integer::New(j), Integer::New(nbtba->value[j]));
+        return contents;
+    }
+    V8_ReturnError("NBT must be a composite, byte array, or list tag");
 }
 
 //static Handle<Value> NBT_names(const Arguments & args)
@@ -664,6 +698,8 @@ void V8NBT_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     // TODO: make accessors for type, name, size...
     nbtIT->Set(String::New("type"), FunctionTemplate::New(NBT_type));
     nbtIT->Set(String::New("name"), FunctionTemplate::New(NBT_name));
+    
+    nbtIT->Set(String::New("contents"), FunctionTemplate::New(NBT_contents));
     
     nbtIT->SetAccessor(String::New("value"), NBT_GetValue, NBT_SetValue);
     

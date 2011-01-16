@@ -172,13 +172,13 @@ int MC_World::Load(const std::string & wPath)
 {
     worldPath = wPath;
     
-    cout << "Searching for files..." << endl;
+//    cout << "Searching for files..." << endl;
     vector<string> filepaths;
     for(int x = 0; x < 64; ++x)
     for(int z = 0; z < 64; ++z)
     {
         string dirPath = worldPath + "/" + chunkDirs[x] + "/" + chunkDirs[z];
-        cout << "Dir " << dirPath << endl;
+//        cout << "Dir " << dirPath << endl;
         GetFilePaths(dirPath, filepaths);
     }
     
@@ -186,7 +186,7 @@ int MC_World::Load(const std::string & wPath)
     cout << "Loading..." << endl;
     for(size_t j = 0; j < filepaths.size(); ++j)
     {
-        cout << "Loading " << filepaths[j] << endl;
+//        cout << "Loading " << filepaths[j] << endl;
         NBT_TagCompound * nbt = LoadNBT_File(filepaths[j]);
         if(nbt)
             AddChunk(new MC_Chunk(nbt));
