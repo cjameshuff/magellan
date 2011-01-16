@@ -37,18 +37,6 @@
 
 #include "blocktypes.h"
 
-
-/*struct ALpha_Inventory {
-    int16_t id;
-    int16_t damage;
-    int8_t count;
-    int8_t slot;
-};
-
-struct ALpha_LevelData {
-
-};*/
-
 struct MC_Block {
     uint8_t type;
     uint8_t data;
@@ -70,6 +58,7 @@ class MC_Chunk {
     NBT_TagList * tileEntities;
     int64_t lastupdate;
     int8_t populated;
+    bool dirty;
     
   public:// public members
     int32_t xPos;
@@ -82,6 +71,9 @@ class MC_Chunk {
     MC_Chunk(NBT_TagCompound * cNBT);
     MC_Chunk(int32_t x, int32_t z);
     ~MC_Chunk() {delete chunkNBT;}
+    
+    NBT_TagCompound * GetChunkNBT() {return chunkNBT;}
+    const NBT_TagCompound * GetChunkNBT() const {return chunkNBT;}
     
 static int32_t GetIdx(int32_t x, int32_t y, int32_t z) {return y + (z + x*16)*128;}
 // Compute indices of neighboring blocks
@@ -97,9 +89,32 @@ static bool IdxGood(int32_t idx) {return idx > 0 && idx < (16*16*128);}
         size_t idx = GetIdx(x, y, z);
         size_t halfidx = idx >> 1;
         block.type = (*blocks)[idx];
-        block.data = (idx & 0x01)? ((*data)[halfidx] >> 4) : ((*data)[halfidx] & 0x0F);
-        block.skylight = (idx & 0x01)? ((*skylight)[halfidx] >> 4) : ((*skylight)[halfidx] & 0x0F);
-        block.blocklight = (idx & 0x01)? ((*blocklight)[halfidx] >> 4) : ((*blocklight)[halfidx] & 0x0F);
+        if(idx & 0x01) {
+            block.data = ((*data)[halfidx] >> 4);
+            block.skylight = ((*skylight)[halfidx] >> 4);
+            block.blocklight = ((*blocklight)[halfidx] >> 4);
+        }
+        else {
+            block.data = ((*data)[halfidx] & 0x0F);
+            block.skylight = ((*skylight)[halfidx] & 0x0F);
+            block.blocklight = ((*blocklight)[halfidx] & 0x0F);
+        }
+    }
+    
+    void SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z) const {
+        size_t idx = GetIdx(x, y, z);
+        size_t halfidx = idx >> 1;
+        (*blocks)[idx] = block.type;
+        if(idx & 0x01) {
+            (*data)[halfidx] = (block.data << 4) | ((*data)[halfidx] & 0x0F);
+            (*skylight)[halfidx] = (block.skylight << 4) | ((*skylight)[halfidx] & 0x0F);
+            (*blocklight)[halfidx] = (block.blocklight << 4) | ((*blocklight)[halfidx] & 0x0F);
+        }
+        else {
+            (*data)[halfidx] = ((*data)[halfidx] << 4) | (block.data & 0x0F);
+            (*skylight)[halfidx] = ((*skylight)[halfidx] << 4) | (block.skylight & 0x0F);
+            (*blocklight)[halfidx] = ((*blocklight)[halfidx] << 4) | (block.blocklight & 0x0F);
+        }
     }
     
     
@@ -116,17 +131,25 @@ static bool IdxGood(int32_t idx) {return idx > 0 && idx < (16*16*128);}
         size_t halfidx = idx >> 1;
         return (idx & 0x01)? ((*blocklight)[halfidx] >> 4) : ((*blocklight)[halfidx] & 0x0F);
     }
+    
+    void SetType(uint8_t bt, size_t idx) const {(*blocks)[idx] = bt;}
+    void SetData(uint8_t bd, size_t idx) const {
+        size_t halfidx = idx >> 1;
+        if(idx & 0x01)
+            (*data)[halfidx] = (bd << 4) | ((*data)[halfidx] & 0x0F);
+        else
+            (*data)[halfidx] = ((*data)[halfidx] << 4) | (bd & 0x0F);
+    }
 };
 
 
 class MC_World {
   protected:
+    std::string worldPath;
     std::vector<MC_Chunk *> allChunks;
     Array2D<MC_Chunk *> chunks;
     
   public:// public members
-    std::string mcWorldPath;
-    std::string mcWorldName;
     // Map info:
     int xChunkMin, xChunkMax;// min and max chunk coordinates
     int zChunkMin, zChunkMax;
@@ -134,14 +157,21 @@ class MC_World {
     
     
   public:
-    MC_World():
-        xChunkMin(INT_MAX), xChunkMax(INT_MIN),
-        zChunkMin(INT_MAX), zChunkMax(INT_MIN)
-    {}
-    
+    MC_World();
     ~MC_World();
     
-    void Load(const std::string & wPath, const std::string & wName);
+    // Load a Minecraft world
+    // wPath: path of world to load
+    // returns number of chunks loaded
+    // May be used to load chunks from multiple worlds, if the chunk locations do not
+    // overlap.
+    // TODO: load subset of a world, with coordinate offset.
+    int Load(const std::string & wPath);
+    
+    // Save a minecraft world
+    // wPath: path of directory to save world under
+    // returns 0 on success, -1 on failure
+    int Write(const std::string & wPath);
     
     // AddChunk() only adds a chunk to allChunks and recomputes the map dimensions.
     // If chunks are added to the map, RebuildGrid() must be called to recompute
@@ -169,31 +199,21 @@ class MC_World {
             return chunks[x - xChunkMin][z - zChunkMin];
     }
     
+    // Get a block, returns "air" block if chunk doesn't exist for location
+    MC_Block GetBlock(int32_t x, int32_t y, int32_t z) const;
     
-    MC_Chunk * CreateChunkAt(int x, int z) {
-        MC_Chunk * chunk = ChunkAt(x, z);
-        if(chunk)
-            return chunk;
-        
-        
-        
-        if(x < xChunkMin || x > xChunkMax ||
-           z < zChunkMin || z > zChunkMax)
-        {
-            // new chunk is outside of map range, must resize chunk grid
-            RebuildGrid();
-        }
-    }
+    // Set a block, creating chunk if necessary.
+    void SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z);
 };
 
 
 // An arbitarily-sized chunk of blocks, to be operated on as a mass and broken into standard
 // chunks at a later point.
 class MC_BlockBuffer {
-    std::vector<uint8_t> * blocks;
-    std::vector<uint8_t> * data;
-    std::vector<uint8_t> * skylight;
-    std::vector<uint8_t> * blocklight;
+    std::vector<uint8_t> blocks;
+    std::vector<uint8_t> data;
+    std::vector<uint8_t> skylight;
+    std::vector<uint8_t> blocklight;
     NBT_TagCompound * entities;
     NBT_TagCompound * tileEntities;
     int xSize, ySize, zSize;

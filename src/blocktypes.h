@@ -70,6 +70,8 @@ struct BlockType {
     uint8_t color[4];
     BlockType():
         isOpaque(true) {}
+    
+//    virtual ScaledTexture * GetTexture(const MC_Block & block, int lightval, );
 };
 
 
@@ -84,7 +86,7 @@ enum {
     kBT_Dirt = 0x03,
     kBT_Cobblestone = 0x04,
     kBT_Wood = 0x05,
-    kBT_Sapling = 0x06,//*
+    kBT_Sapling = 0x06,
     kBT_Bedrock = 0x07,
     kBT_Water = 0x08,
     kBT_WaterPooled = 0x09,

@@ -94,6 +94,23 @@ NBT_TagCompound * LoadNBT_File(const std::string & path)
 
 //******************************************************************************
 
+int WriteNBT_File(const NBT_TagCompound * nbt, const std::string & path)
+{
+    gzFile fout = gzopen(path.c_str(), "wb");
+    if(!fout) {
+        cerr << "Could not open \"" << path << "\"" << endl;
+        int errnum;
+        cerr << "ZLib error: \"" << gzerror(fout, &errnum) << "\"" << endl;
+        gzclose(fout);
+        return -1;
+    }
+    nbt->Write(fout);
+    gzclose(fout);
+    return 0;
+}
+
+//******************************************************************************
+
 NBT_Tag * Parse_TAG_List(const std::string & name, gzFile fin)
 {
     nbt_tag_t valueType = (nbt_tag_t)Parse_Byte(fin);
@@ -215,16 +232,16 @@ void NBT_TagCompound::Print(std::ostream & ostrm)
     ostrm << TagTab() << '}' << std::endl;
 }
 
-void NBT_TagCompound::Write(gzFile fout)
+void NBT_TagCompound::Write(gzFile fout) const
 {
     NBT_Write(fout, (int8_t)Type());
     NBT_Write(fout, name);
     WriteData(fout);
 }
 
-void NBT_TagCompound::WriteData(gzFile fout)
+void NBT_TagCompound::WriteData(gzFile fout) const
 {
-    for(std::vector<NBT_Tag *>::iterator t = tags.begin(); t != tags.end(); ++t)
+    for(std::vector<NBT_Tag *>::const_iterator t = tags.begin(); t != tags.end(); ++t)
         (*t)->Write(fout);
     NBT_Write(fout, (int8_t)kNBT_TAG_End);
 }
@@ -243,19 +260,19 @@ void NBT_TagList::Print(std::ostream & ostrm)
     ostrm << TagTab() << '}' << std::endl;
 }
 
-void NBT_TagList::Write(gzFile fout)
+void NBT_TagList::Write(gzFile fout) const
 {
     NBT_Write(fout, (int8_t)Type());
     NBT_Write(fout, name);
     WriteData(fout);
 }
 
-void NBT_TagList::WriteData(gzFile fout)
+void NBT_TagList::WriteData(gzFile fout) const
 {
     // Single type shared among all list entries, entries are unnamed 
     NBT_Write(fout, (int8_t)ValueType());
     NBT_Write(fout, (int32_t)values.size());
-    for(std::vector<NBT_Tag *>::iterator t = values.begin(); t != values.end(); ++t)
+    for(std::vector<NBT_Tag *>::const_iterator t = values.begin(); t != values.end(); ++t)
         (*t)->WriteData(fout);
 }
 

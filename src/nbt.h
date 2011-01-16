@@ -85,8 +85,8 @@ struct NBT_Tag {
     
     virtual void Print(std::ostream & ostrm) = 0;
     
-    virtual void Write(gzFile fout) {}
-    virtual void WriteData(gzFile fout) = 0;
+    virtual void Write(gzFile fout) const {}
+    virtual void WriteData(gzFile fout) const = 0;
 //    virtual void Write(gzFile fout) = 0;
 };
 
@@ -173,8 +173,8 @@ struct NBT_TagCompound: public NBT_Tag {
     virtual nbt_tag_t Type() const {return kNBT_TAG_Compound;}
     
     virtual void Print(std::ostream & ostrm);
-    virtual void Write(gzFile fout);
-    virtual void WriteData(gzFile fout);
+    virtual void Write(gzFile fout) const;
+    virtual void WriteData(gzFile fout) const;
 };
 
 //******************************************************************************
@@ -195,8 +195,8 @@ struct NBT_TagList: public NBT_Tag {
     virtual nbt_tag_t ValueType() const {return valueType;}
     
     virtual void Print(std::ostream & ostrm);
-    virtual void Write(gzFile fout);
-    virtual void WriteData(gzFile fout);
+    virtual void Write(gzFile fout) const;
+    virtual void WriteData(gzFile fout) const;
 };
 
 //******************************************************************************
@@ -215,12 +215,12 @@ struct NBT_TagValue: public NBT_Tag {
     virtual void Print(std::ostream & ostrm) {
         ostrm << TagTab() << kTypeNames[Type()] << "(\"" << name << "\"): " << value << std::endl;
     }
-    virtual void Write(gzFile fout) {
+    virtual void Write(gzFile fout) const {
         NBT_Write(fout, (int8_t)Type());
         NBT_Write(fout, name);
         NBT_Write(fout, value);
     }
-    virtual void WriteData(gzFile fout) {
+    virtual void WriteData(gzFile fout) const {
         NBT_Write(fout, value);
     }
 };
@@ -279,6 +279,7 @@ typedef NBT_TagValue<std::string> NBT_TagString;
 //******************************************************************************
 
 NBT_TagCompound * LoadNBT_File(const std::string & path);
+int WriteNBT_File(const NBT_TagCompound * nbt, const std::string & path);
 
 //******************************************************************************
 #endif // NBT_H

@@ -22,9 +22,13 @@
 //******************************************************************************
 
 #include "magellan.h"
+#include "mc.h"
 #include "misc.h"
 
 #include "nbtv8.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 using namespace std;
 using namespace v8;
@@ -35,47 +39,88 @@ static Persistent<FunctionTemplate> mcworldCons;
 //******************************************************************************
 
 Handle<Object> WrapMC_World(MC_World * map);
-//static MC_World * checkMC_World(lua_State * L, int argn);
 
 //******************************************************************************
 
-
-static Handle<Value> MCMap_load(const Arguments & args) {
-//    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
-//    string mcWorldPath = *String::Utf8Value(args[0]->ToString());
-//    world->Load(mcWorldPath, "");// FIXME
-//    return WrapMC_World(world);
+static Handle<Value> MCMap_write(const Arguments & args) {
+    if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
+    MC_World * world = ExternVal<MC_World>(args.This());
+    string mcWorldPath = StringValue(args[0]);
+    world->Write(mcWorldPath);
     return Undefined();
 }
 
-static Handle<Value> MCMap_write(const Arguments & args) {
-//    MC_World * world = checkMC_World(L, 1);
+static Handle<Value> MCMap_getblock(const Arguments & args) {
+    if(args.Length() != 3) return ThrowException(String::New("Bad parameters"));
+    MC_World * world = ExternVal<MC_World>(args.This());
+    int x = args[0]->IntegerValue();
+    int y = args[1]->IntegerValue();
+    int z = args[2]->IntegerValue();
+    MC_Block block = world->GetBlock(x, y, z);
+    
+    Handle<Object> blockObj = Object::New();
+    blockObj->Set(String::New("type"), Integer::New(block.type));
+    blockObj->Set(String::New("data"), Integer::New(block.data));
+    blockObj->Set(String::New("skylight"), Integer::New(block.skylight));
+    blockObj->Set(String::New("blocklight"), Integer::New(block.blocklight));
+    return blockObj;
+}
+
+static Handle<Value> MCMap_setblock(const Arguments & args) {
+    if(args.Length() < 4 || args.Length() > 7) return ThrowException(String::New("Bad parameters"));
+    int x = args[0]->IntegerValue();
+    int y = args[1]->IntegerValue();
+    int z = args[2]->IntegerValue();
+    MC_Block block = {kBT_Air, 0x0, 0x0, 0x0};
+    if(args[3]->IsObject()) {
+        v8::Local<v8::Value> val;
+        Handle<Object> blockObj = Handle<Object>::Cast(args[3]);
+        if(TryGet(blockObj, "type", val)) block.type = val->IntegerValue();
+        if(TryGet(blockObj, "data", val)) block.data = val->IntegerValue();
+        if(TryGet(blockObj, "skylight", val)) block.skylight = val->IntegerValue();
+        if(TryGet(blockObj, "blocklight", val)) block.blocklight = val->IntegerValue();
+    }
+    else if(args.Length() == 4) {
+        block.type = args[3]->IntegerValue();
+    }
+    else if(args.Length() == 5) {
+        block.type = args[3]->IntegerValue();
+        block.data = args[4]->IntegerValue();
+    }
+    else if(args.Length() == 5) {
+        return ThrowException(String::New("Bad parameters"));
+    }
+    else if(args.Length() == 5) {
+        block.type = args[3]->IntegerValue();
+        block.data = args[4]->IntegerValue();
+        block.skylight = args[5]->IntegerValue();
+        block.blocklight = args[6]->IntegerValue();
+    }
+    
+    MC_World * world = ExternVal<MC_World>(args.This());
+    world->SetBlock(block, x, y, z);
+    
     return Undefined();
 }
 
 static Handle<Value> MCMap_render(const Arguments & args) {
-//    MC_World * world = checkMC_World(L, 1);
-//    
-//    lua_getfield(L, 1, "xmin");
-//    if(lua_isnil(L,-1))
-//    double xmin = luaL_checknumber(L,-1);
-//    
-//    lua_getfield(L, 1, "foo");
-//    string foo = luaL_checkstring(L,-1);
-//    
-//    
-//    cout << "foo: " << foo << endl;
-//    cout << "bar: " << bar << endl;
     return Undefined();
 }
 
 static Handle<Value> MCMap_stats(const Arguments & args) {
-////    MC_World * world = checkMC_World(L, 1);
     return Undefined();
 }
 
 //******************************************************************************
 
+
+static void weakMC_World_CB(Persistent<Value> obj, void * param)
+{
+    MC_World * world = static_cast<MC_World *>(param);
+    delete world;
+    obj.Dispose();
+    obj.Clear();
+}
 
 static Handle<Value> ConstructMC_World(const Arguments & args)
 {
@@ -85,22 +130,28 @@ static Handle<Value> ConstructMC_World(const Arguments & args)
 	if(!args.IsConstructCall()) return ThrowException(String::New("Cannot call constructor as function"));
     if(args.Length() == 2 || args.Length() > 3) return ThrowException(String::New("Bad parameters"));
     
-    if(args[0]->IsExternal())
+    if(args.Length() > 0 && args[0]->IsExternal())
     {
-        // Passed an external: called from C++
-        // Does not own NBT_Tag (at this point) and does not delete it when collected.
+        // Passed an external: constructed from C++. Does not own object, will not
+        // clean it up.
         wrapper = Handle<External>::Cast(args[0]);
     }
     else
     {
-        // Passed JS object(s)
-        //NBT_Tag * nbt = ;
+        // No arguments or passed JS object: constructed from JavaScript
+        MC_World * world = new MC_World;
         
-        //wrapper = External::New(nbt);*/
+        if(args.Length() > 0) {
+            string mcWorldPath = StringValue(args[0]);
+            world->Load(mcWorldPath);
+            return WrapMC_World(world);
+        }
         
-//        Persistent<Object> cleanerHandle = Persistent<Object>::New(args.This());
-//        cleanerHandle.MakeWeak(nbt, weakNBT_CB);// NBT_Tag is owned by JS object
+        wrapper = External::New(world);
+        Persistent<Object> cleanerHandle = Persistent<Object>::New(args.This());
+        cleanerHandle.MakeWeak(world, weakMC_World_CB);// NBT_Tag is owned by JS object
     }
+    
     args.This()->SetInternalField(0, wrapper);
     return args.This();
 }
@@ -145,9 +196,9 @@ static Handle<Value> LoadWorld(const Arguments & args)
         wnm << "/DIM-" << dimension;
     mcWorldName = wnm.str();
     
-    string mcWorldPath = MCPath() + "/saves";
+    string mcWorldPath = MCPath() + "/saves/" + mcWorldName;
     cout << "mcWorldPath: " << mcWorldPath << endl;
-    world.Load(mcWorldPath, mcWorldName);
+    world.Load(mcWorldPath);
     
     return Undefined();
 }
@@ -257,15 +308,18 @@ void MGV8_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     mcworldCons = Persistent<FunctionTemplate>::New(lmcworldCons);
     global->Set(String::New("MC_World"), mcworldCons);
     
-    lmcworldCons->Set(String::New("load"), FunctionTemplate::New(MCMap_load));
+//    lmcworldCons->Set(String::New("load"), FunctionTemplate::New(MCMap_load));
     
     Handle<ObjectTemplate> mapIT = lmcworldCons->InstanceTemplate();
     mapIT->SetInternalFieldCount(1);
     
     mapIT->Set(String::New("write"), FunctionTemplate::New(MCMap_write));
+    mapIT->Set(String::New("getblock"), FunctionTemplate::New(MCMap_getblock));
+    mapIT->Set(String::New("setblock"), FunctionTemplate::New(MCMap_setblock));
     mapIT->Set(String::New("stats"), FunctionTemplate::New(MCMap_stats));
     mapIT->Set(String::New("render"), FunctionTemplate::New(MCMap_render));
     
+    // Old/simple API
     global->Set(String::New("load_world"), FunctionTemplate::New(LoadWorld));
     global->Set(String::New("print_world_stats"), FunctionTemplate::New(PrintWorldStats));
     global->Set(String::New("render_map"), FunctionTemplate::New(RenderMap));

@@ -29,6 +29,7 @@
 #include <set>
 #include <stack>
 #include <vector>
+#include <sys/stat.h>
 
 
 // Accumulate paths of files in directory into filepaths. Does not clear filepaths,
@@ -69,8 +70,29 @@ inline void GetFilePaths(std::string basepath,
     }
 }
 
+inline int MakeDir(const std::string & path) {
+    return mkdir(path.c_str(), 0777);
+}
 
-inline void GetFilePaths(std::string basepath,
+inline bool FileExists(const std::string & path) {
+    struct stat statbuf;
+    int result = stat(path.c_str(), &statbuf);
+    return result == 0;
+}
+
+inline bool DirExists(const std::string & path) {
+    if(!FileExists(path))
+        return false;
+    
+    // Might be a better way to do this...
+    DIR * dir = opendir(path.c_str());
+    if(!dir)
+        return false;
+    closedir(dir);
+    return true;
+}
+
+inline void GetFilePaths(const std::string & basepath,
     std::vector<std::string> & filepaths)
 {
     std::set<std::string> exclude;

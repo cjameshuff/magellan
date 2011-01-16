@@ -157,7 +157,7 @@ void RenderMap(const MagellanOptions & opts)
         {
             cout << "Rendering layer " << y << endl;
             ostringstream fname;
-            fname << world.mcWorldName << "/layer" << setw(3) << setfill('0') << y << ".png";
+            fname << opts.outputFile << "/layer" << setw(3) << setfill('0') << y << ".png";
             SimpleImage outputImage(16*opts.zSize*opts.scale, 16*opts.xSize*opts.scale, 4);
             outputImage.Clear(0, 0, 0, 255);
             

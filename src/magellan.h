@@ -42,8 +42,7 @@ enum {
 
 struct MagellanOptions {
     std::string outputFile;
-//    std::string mcWorldName;
-//    
+    
 //    int worldNum;
 //    int dimension;
     
