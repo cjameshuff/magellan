@@ -11,7 +11,7 @@
 
 // A map from integers < 72 to base36 strings, used for putting chunks in the
 // right directories or for scanning through a world's chunk files.
-var CHUNK_DIRS[72] = [
+var CHUNK_DIRS = [
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h",// 0-17
     "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",// 18-35
     "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1a", "1b", "1c", "1d", "1e", "1f", "1g", "1h",// 36-53
