@@ -29,7 +29,7 @@ run_script("mcdefs.js");
 
 function DumpEntity(entity) {
     var id = entity.get("id").value;
-    var pos = entity.get("Pos").contents();
+    var pos = entity.get("Pos").contents;
     var x = pos[0].value;
     var y = pos[1].value;
     var z = pos[2].value;
@@ -51,8 +51,8 @@ function DumpChunk(chunk) {
     var zPos = level.get("zPos").value;
     var terrainPopulated = level.get("TerrainPopulated").value;
     
-    var entities = level.get("Entities").contents();
-    var tileEntities = level.get("TileEntities").contents();
+    var entities = level.get("Entities").contents;
+    var tileEntities = level.get("TileEntities").contents;
     
     if(entities.length > 0 || tileEntities.length > 0) {
         printf("\nChunk: x = %@, z = %@\n", xPos, zPos);

@@ -174,7 +174,6 @@ static Handle<Value> NBT_newList(const Arguments & args) {
 //******************************************************************************
 
 
-//******************************************************************************
 
 static Handle<Value> NBT_GetValue(Local<String> property, const AccessorInfo & info) {
     Local<External> wrap = Local<External>::Cast(info.Holder()->GetInternalField(0));
@@ -423,10 +422,10 @@ static Handle<Value> NBT_size(const Arguments & args)
     return Undefined();
 }
 
-static Handle<Value> NBT_contents(const Arguments & args) {
-    if(args.Length() != 0) return ThrowException(String::New("Bad parameters"));
-    NBT_Tag * nbt = ExternVal<NBT_Tag>(args.This());
-    
+
+static Handle<Value> NBT_GetContents(Local<String> property, const AccessorInfo & info) {
+    Local<External> wrap = Local<External>::Cast(info.Holder()->GetInternalField(0));
+    NBT_Tag * nbt = static_cast<NBT_Tag *>(wrap->Value());
     if(nbt->Type() == kNBT_TAG_Compound)
     {
         NBT_TagCompound * nbtcomp = dynamic_cast<NBT_TagCompound *>(nbt);
@@ -699,9 +698,10 @@ void V8NBT_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     nbtIT->Set(String::New("type"), FunctionTemplate::New(NBT_type));
     nbtIT->Set(String::New("name"), FunctionTemplate::New(NBT_name));
     
-    nbtIT->Set(String::New("contents"), FunctionTemplate::New(NBT_contents));
     
     nbtIT->SetAccessor(String::New("value"), NBT_GetValue, NBT_SetValue);
+    nbtIT->SetAccessor(String::New("contents"), NBT_GetContents);
+//    nbtIT->Set(String::New("contents"), FunctionTemplate::New(NBT_contents));
     
     nbtIT->Set(String::New("get"), FunctionTemplate::New(NBT_index));
     nbtIT->Set(String::New("set"), FunctionTemplate::New(NBT_newindex));

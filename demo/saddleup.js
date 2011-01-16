@@ -20,12 +20,12 @@ printf("World has %@ chunks\n", chunks.length);
 for(var i in chunks) {
     var chunk = chunks[i];
     var level = chunk.get("Level");
-    var entities = level.get("Entities").contents();
+    var entities = level.get("Entities").contents;
     
     for(e in entities) {
         var entity = entities[e];
         var id = entity.get("id").value;
-        var pos = entity.get("Pos").contents();
+        var pos = entity.get("Pos").contents;
         var x = pos[0].value;
         var y = pos[1].value;
         var z = pos[2].value;
