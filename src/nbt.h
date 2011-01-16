@@ -23,8 +23,15 @@
 
 // Note, char strings are used here, but the string class preserves non-ASCII
 // values, so conversion to wstrings is trivial for things that require it.
-
+//
 // http://www.minecraft.net/docs/NBT.txt
+//
+// Also note that names are conceptually part of the tags in the NBT (Named
+// Binary Tags) format. It would be cleaner and a bit more convenient to
+// consider the names to be keys held by the containing compound tag (aside from
+// the root tag, named tags are always members of a TAG_Compound), and the API
+// may eventually be modified to work this way.
+// This mainly avoids the issue of dealing with named and unnamed tags.
 
 #ifndef NBT_H
 #define NBT_H
@@ -84,11 +91,13 @@ struct NBT_Tag {
 };
 
 //******************************************************************************
+// The tags vector is only necessary if we need to maintain a specific order.
+// It can probably be removed to save some memory and simplify insertion/deletion.
 struct NBT_TagCompound: public NBT_Tag {
     std::vector<NBT_Tag *> tags;
     std::map<std::string, NBT_Tag *> tagsByName;
     
-    NBT_TagCompound() {}
+    NBT_TagCompound(const std::string nm = ""): NBT_Tag(nm) {}
     ~NBT_TagCompound() {
         for(std::vector<NBT_Tag *>::iterator t = tags.begin(); t != tags.end(); ++t)
             delete *t;
@@ -96,9 +105,10 @@ struct NBT_TagCompound: public NBT_Tag {
     
     // Does not check for existing tags
     void AddTag(NBT_Tag * tag) {
-        tags.push_back(tag);
-        if(tag->name != "")
+        if(tag->name != "") {
             tagsByName[tag->name] = tag;
+            tags.push_back(tag);
+        }
     }
     
     // Insert or replace a tag
@@ -116,9 +126,7 @@ struct NBT_TagCompound: public NBT_Tag {
             }
         }
         else {
-            tags.push_back(tag);
-            if(tag->name != "")
-                tagsByName[tag->name] = tag;
+            AddTag(tag);
         }
     }
     
@@ -177,6 +185,7 @@ struct NBT_TagList: public NBT_Tag {
     std::vector<NBT_Tag *> values;
     
     NBT_TagList(nbt_tag_t vt = kNBT_TAG_End): valueType(vt) {}
+    NBT_TagList(const std::string & nm, nbt_tag_t vt = kNBT_TAG_End): NBT_Tag(nm), valueType(vt) {}
     ~NBT_TagList() {
         for(std::vector<NBT_Tag *>::iterator t = values.begin(); t != values.end(); ++t)
             delete *t;
@@ -198,7 +207,7 @@ struct NBT_TagValue: public NBT_Tag {
     
     NBT_TagValue() {}
     NBT_TagValue(T val): NBT_Tag(""), value(val) {}
-    NBT_TagValue(const std::string & nm, T val): NBT_Tag(nm), value(val) {}
+    NBT_TagValue(const std::string & nm, T val = T()): NBT_Tag(nm), value(val) {}
     ~NBT_TagValue() {}
     
     virtual nbt_tag_t Type() const {return -1;}

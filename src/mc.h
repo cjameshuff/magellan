@@ -56,22 +56,32 @@ struct MC_Block {
     uint8_t blocklight;
 };
 
-// This class provides a faster interface to a NBT file chunk, and that chunk
-// must remain in existence. Do not delete the chunk!
+// This class wraps a NBT structure representing a Minecraft map chunk. An
+// instance of MC_Chunk gains ownership of the NBT structure on construction.
 class MC_Chunk {
+  private:
     std::vector<uint8_t> * blocks;
     std::vector<uint8_t> * data;
     std::vector<uint8_t> * skylight;
     std::vector<uint8_t> * blocklight;
     std::vector<uint8_t> * heightmap; // (16x16, ordered ZX)
-    NBT_TagCompound * entities;
+    NBT_TagCompound * chunkNBT;
+    NBT_TagList * entities;
+    NBT_TagList * tileEntities;
     int64_t lastupdate;
+    int8_t populated;
+    
+  public:// public members
     int32_t xPos;
     int32_t zPos;
-    int8_t populated;
+    
+  private:
+    void SetupFromNBT();
+    
   public:
-    MC_Chunk(NBT_TagCompound * chunkTag);
-    ~MC_Chunk() {}
+    MC_Chunk(NBT_TagCompound * cNBT);
+    MC_Chunk(int32_t x, int32_t z);
+    ~MC_Chunk() {delete chunkNBT;}
     
 static int32_t GetIdx(int32_t x, int32_t y, int32_t z) {return y + (z + x*16)*128;}
 // Compute indices of neighboring blocks
@@ -108,30 +118,99 @@ static bool IdxGood(int32_t idx) {return idx > 0 && idx < (16*16*128);}
     }
 };
 
-struct MC_World {
+
+class MC_World {
+  protected:
+    std::vector<MC_Chunk *> allChunks;
+    Array2D<MC_Chunk *> chunks;
+    
+  public:// public members
     std::string mcWorldPath;
     std::string mcWorldName;
     // Map info:
-    int xChunkMin, xChunkMax;
+    int xChunkMin, xChunkMax;// min and max chunk coordinates
     int zChunkMin, zChunkMax;
     int xSize, zSize;
-    std::vector<NBT_TagCompound *> chunkTags;
-    Array2D<MC_Chunk *> chunks;
     
+    
+  public:
     MC_World():
         xChunkMin(INT_MAX), xChunkMax(INT_MIN),
         zChunkMin(INT_MAX), zChunkMax(INT_MIN)
     {}
     
-    ~MC_World() {
-        for(size_t j = 0; j < chunkTags.size(); ++j)
-            delete chunkTags[j];
-    }
-    void Load(const std::string & wPath, const std::string & wName, bool ignoreEmpties = false);
+    ~MC_World();
     
-    // Does not do bounds checks!
-    MC_Chunk * ChunkAt(int x, int z) {return chunks[x - xChunkMin][z - zChunkMin];}
+    void Load(const std::string & wPath, const std::string & wName);
+    
+    // AddChunk() only adds a chunk to allChunks and recomputes the map dimensions.
+    // If chunks are added to the map, RebuildGrid() must be called to recompute
+    // the chunk grid and do other tasks..
+    void AddChunk(MC_Chunk * chunk);
+    void RebuildGrid();
+    
+//    MC_Block GetBlock(int32_t x, int32_t y, int32_t z) const;
+//    void SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z);
+    
+    // Get chunk at given chunk location. Return NULL if location is out of bounds
+    // or has no chunk. Location is in chunk coordinates, which are block coordinates/16.
+    MC_Chunk * ChunkAt(int x, int z) {
+        if(x < xChunkMin || x > xChunkMax ||
+           z < zChunkMin || z > zChunkMax)
+            return NULL;
+        else
+            return chunks[x - xChunkMin][z - zChunkMin];
+    }
+    const MC_Chunk * ChunkAt(int x, int z) const {
+        if(x < xChunkMin || x > xChunkMax ||
+           z < zChunkMin || z > zChunkMax)
+            return NULL;
+        else
+            return chunks[x - xChunkMin][z - zChunkMin];
+    }
+    
+    
+    MC_Chunk * CreateChunkAt(int x, int z) {
+        MC_Chunk * chunk = ChunkAt(x, z);
+        if(chunk)
+            return chunk;
+        
+        
+        
+        if(x < xChunkMin || x > xChunkMax ||
+           z < zChunkMin || z > zChunkMax)
+        {
+            // new chunk is outside of map range, must resize chunk grid
+            RebuildGrid();
+        }
+    }
 };
 
+
+// An arbitarily-sized chunk of blocks, to be operated on as a mass and broken into standard
+// chunks at a later point.
+class MC_BlockBuffer {
+    std::vector<uint8_t> * blocks;
+    std::vector<uint8_t> * data;
+    std::vector<uint8_t> * skylight;
+    std::vector<uint8_t> * blocklight;
+    NBT_TagCompound * entities;
+    NBT_TagCompound * tileEntities;
+    int xSize, ySize, zSize;
+  public:
+    MC_BlockBuffer(int xS, int yS, int zS);
+    
+//    MC_Block GetBlock(int x, int y, int z) {}
+//    void SetBlock(int x, int y, int z, const MC_Block & blk) {}
+    
+    // Copy block and item data to buffer from a world
+    void CopyFrom(MC_World & world, int xPos, int yPos, int zPos);
+    
+    // Copy block and item data from buffer to a world
+    void CopyTo(MC_World & world, int xPos, int yPos, int zPos);
+    
+    // Copy block and item data from buffer to a world, except do not replace blocks with air.
+    void MergeTo(MC_World & world, int xPos, int yPos, int zPos);
+};
 //******************************************************************************
 #endif // MINECRAFT_H
