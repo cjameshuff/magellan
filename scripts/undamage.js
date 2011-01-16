@@ -28,7 +28,7 @@ for(var i = 0; i < inventory.size(); ++i) {
     var count = item.get("Count").value;
     var slot = item.get("Slot").value;
     // Dyes use the damage field to store the dye subtype.
-    if(damage > 0 && id != ITEM_IDS["Dye"]) {
+    if(damage > 0 && id != ITEM_IDS["Dye"] && id != ITEM_IDS["Wool"]) {
 //        println("Repairing " + ITEM_NAMES[id] + " in slot " + slot + ", damage " + damage);
         printf("Repairing %@ in slot %@, damage %@\n", ITEM_NAMES[id], slot, damage);
         item.get("Damage").value = 0;
