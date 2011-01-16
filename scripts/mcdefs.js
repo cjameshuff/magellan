@@ -300,9 +300,13 @@ function AddInvItem(level_dat, itemID, damage, count, slot) {
     var inventory = level_dat.get("Data").get("Player").get("Inventory");
     printf("Adding %@ to slot %@\n", ITEM_NAMES[itemID], slot);
     var item = NBT.new_compound("");
-    item.set(NBT.new_short("id", itemID))
-    item.set(NBT.new_short("Damage", damage))
-    item.set(NBT.new_byte("Count", count))
-    item.set(NBT.new_byte("Slot", slot))
+    item.set("id", NBT.new_short(itemID))
+    item.set("Damage", NBT.new_short(damage))
+    item.set("Count", NBT.new_byte(count))
+    item.set("Slot", NBT.new_byte(slot))
+//    item.set(NBT.new_short("id", itemID))
+//    item.set(NBT.new_short("Damage", damage))
+//    item.set(NBT.new_byte("Count", count))
+//    item.set(NBT.new_byte("Slot", slot))
     inventory.push_back(item);
 }

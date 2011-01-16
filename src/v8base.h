@@ -78,5 +78,9 @@ static inline std::string StringValue(v8::Handle<v8::Value> val) {
     return std::string(*v8::String::Utf8Value(val->ToString()));
 }
 
+
+#define V8_ReturnError(msg)  return ThrowException(String::New(msg))
+#define V8_ReturnErrorIf(cond, msg) if(cond) return ThrowException(String::New(msg))
+
 //******************************************************************************
 #endif // V8BASE_H
