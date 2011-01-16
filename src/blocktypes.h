@@ -32,23 +32,44 @@ enum {
     kBS_North,
     kBS_South,
     kBS_East,
-    kBS_West
+    kBS_West,
+    kBS_Left = kBS_West, // Mapping of left/right/front/back coordinates:
+    kBS_Back = kBS_North,// think of a map on a workbench, north side away from you.
+    kBS_Front = kBS_South,
+    kBS_Right = kBS_East
 };
 
 // TODO: block sides, oddball entities like doors
+
+// Textures are stored at precalculated power-of-2 scales. All textures are
+// assumed to be of equal size at each scale.
+// Scale decreases with increasing index. Index 0 is largest scale, index 2 is
+// halved, etc.
+const int kNumTextureScales = 4;
+const int kTextureScaleMap[] = {// map from pixel scales to power of 2 indices
+    3,
+    3,
+    3, 2,
+    2, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0,
+    0
+};
+struct ScaledTexture {
+    SimpleImage * texture[kNumTextureScales];
+    
+    ScaledTexture();
+    
+    void Compute(SimpleImage * base);
+    SimpleImage * operator[](size_t idx) {return texture[idx];}
+};
+
+
 struct BlockType {
     bool isOpaque;
-    SimpleImage * texture16;
-    SimpleImage * texture8;
-    SimpleImage * texture4;
-    SimpleImage * texture2;
+    ScaledTexture texture;
     uint8_t color[4];
     BlockType():
-        isOpaque(true),
-        texture16(NULL),
-        texture8(NULL),
-        texture4(NULL),
-        texture2(NULL) {}
+        isOpaque(true) {}
 };
 
 

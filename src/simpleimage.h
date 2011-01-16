@@ -61,6 +61,10 @@ struct SimpleImage {
 		if(rows) delete[] rows;
     }
     
+    int32_t Width() const {return width;}
+    int32_t Height() const {return height;}
+    int32_t NumPixels() const {return width*height;}
+    
     // Extract rectangular area of image as new image
     SimpleImage * Slice(int32_t x, int32_t y, int32_t w, int32_t h) const
     {

@@ -146,6 +146,21 @@ const std::string kBlockTypeNames[] = {
 };
 
 //******************************************************************************
+ScaledTexture::ScaledTexture()
+{
+    for(int j = 0; j < kNumTextureScales; ++j)
+        texture[kNumTextureScales] = NULL;
+}
+
+void ScaledTexture::Compute(SimpleImage * base)
+{
+    texture[0] = base;
+    for(int j = 1; j < kNumTextureScales; ++j) {
+        texture[j] = new SimpleImage(*texture[j - 1]);
+        texture[j]->Halve();
+    }
+}
+//******************************************************************************
 
 // Extract texture from main image and map its ID.
 // Textures are indexed left to right, top down. Coordinates are in 16x16 texture
@@ -153,22 +168,23 @@ const std::string kBlockTypeNames[] = {
 void LoadTexture(int id, int x, int y, bool isOpaque = true, float tr = 1.0f, float tg = 1.0f, float tb = 1.0f)
 {
     // Extract a 16x16 tile at the given coordinates
-    blockTypes[id].texture16 = texturesImage.Slice(x*16, (15-y)*16, 16, 16);
-    blockTypes[id].texture16->Mul(tr, tg, tb, 1.0f);
+    SimpleImage * texture = texturesImage.Slice(x*16, (15-y)*16, 16, 16);
+    texture->Mul(tr, tg, tb, 1.0f);
+    
     // Generate smaller versions and overall color
-    blockTypes[id].texture8 = new SimpleImage(*blockTypes[id].texture16);
-    blockTypes[id].texture8->Halve();
-    blockTypes[id].texture4 = new SimpleImage(*blockTypes[id].texture8);
-    blockTypes[id].texture4->Halve();
-    blockTypes[id].texture2 = new SimpleImage(*blockTypes[id].texture4);
-    blockTypes[id].texture2->Halve();
-    for(int j = 0; j < 4; ++j) {
-        int pc = 0;
-        for(int p = 0; p < 4; ++p)
-            pc += blockTypes[id].texture2->pixels[p*4 + j];
-        
-        blockTypes[id].color[j] = pc/4;
+    blockTypes[id].texture.Compute(texture);
+    
+    // pick smallest texture and average its pixels to get overall color
+    texture = blockTypes[id].texture[kNumTextureScales - 1];
+    int32_t n = texture->NumPixels();
+    int col[] = {0, 0, 0, 0};
+    for(int p = 0; p < n; ++p) {
+        for(int c = 0; c < 4; ++c)
+            col[c] += texture->pixels[p*4 + c];
     }
+    for(int c = 0; c < 4; ++c)
+        blockTypes[id].color[c] = col[c]/n;
+    
     blockTypes[id].isOpaque = isOpaque;
 }
 
@@ -180,10 +196,6 @@ void LoadTextures()
         exit(EXIT_FAILURE);
     }
     
-    blockTypes[kBT_Air].texture16 = NULL;
-    blockTypes[kBT_Air].texture8 = NULL;
-    blockTypes[kBT_Air].texture4 = NULL;
-    blockTypes[kBT_Air].texture2 = NULL;
     blockTypes[kBT_Air].color[0] = 255;
     blockTypes[kBT_Air].color[1] = 255;
     blockTypes[kBT_Air].color[2] = 255;

@@ -254,12 +254,6 @@ void RenderBlock(SimpleImage & outputImage, int scale, uint8_t type, int x, int 
         cerr << "Block coordinates out of range: " << x << ", " << y << ", " << z << endl;
         return;
     }*/
-    SimpleImage * blockTex = blockTypes[type].texture16;
-    if(blockTex == NULL) {
-        if(type != kBT_Air)
-            cerr << "No texture for block type " << (int)type << " (" << kBlockTypeNames[type] << ")" << endl;
-        return;
-    }
     
     if(scale == 1)
     {
@@ -273,6 +267,12 @@ void RenderBlock(SimpleImage & outputImage, int scale, uint8_t type, int x, int 
     }
     else
     {
+        SimpleImage * blockTex = blockTypes[type].texture[kTextureScaleMap[scale]];
+        if(blockTex == NULL) {
+            if(type != kBT_Air)
+                cerr << "No texture for block type " << (int)type << " (" << kBlockTypeNames[type] << ")" << endl;
+            return;
+        }
         // Chunk coordinates are in world space chunk units, convert to block units
         // Blit texture at location
         outputImage.Blit(*blockTex, z*scale, x*scale, light);
