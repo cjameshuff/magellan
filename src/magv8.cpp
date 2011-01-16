@@ -46,7 +46,8 @@ static Handle<Value> MCMap_write(const Arguments & args) {
     if(args.Length() != 1) return ThrowException(String::New("Bad parameters"));
     MC_World * world = ExternVal<MC_World>(args.This());
     string mcWorldPath = StringValue(args[0]);
-    world->Write(mcWorldPath);
+    if(world)
+        world->Write(mcWorldPath);
     return Undefined();
 }
 

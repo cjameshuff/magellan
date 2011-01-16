@@ -27,6 +27,23 @@ run_script("mcdefs.js");
 //        TAG_BYTE TerrainPopulated
 //    }
 
+function DumpEntity(entity) {
+    var id = entity.get("id").value;
+    var pos = entity.get("Pos").contents();
+    var x = pos[0].value;
+    var y = pos[1].value;
+    var z = pos[2].value;
+    printf("\t%@ at < %@, %@, %@>\n", id, x, y, z);
+}
+function DumpTileEntity(entity) {
+    var id = entity.get("id").value;
+    var x = entity.get("x").value;
+    var y = entity.get("y").value;
+    var z = entity.get("z").value;
+//    var id = level.get("EntityId").value;// for MobSpawner
+    printf("\t%@ at < %@, %@, %@>\n", id, x, y, z);
+}
+
 function DumpChunk(chunk) {
     var level = chunk.get("Level");
     var lastUpdate = level.get("LastUpdate").value;
@@ -34,13 +51,23 @@ function DumpChunk(chunk) {
     var zPos = level.get("zPos").value;
     var terrainPopulated = level.get("TerrainPopulated").value;
     
-    printf("\nx = %@, z = %@\n", xPos, zPos);
-    printf("LastUpdate: %@, terrainPopulated = %@\n", lastUpdate, terrainPopulated);
-    
     var entities = level.get("Entities").contents();
     var tileEntities = level.get("TileEntities").contents();
-    printf("entities = %@\n", entities);
-    printf("tileEntities = %@\n", tileEntities);
+    
+    if(entities.length > 0 || tileEntities.length > 0) {
+        printf("\nChunk: x = %@, z = %@\n", xPos, zPos);
+        printf("%@ movable entities, %@ tile entities\n", entities.length, tileEntities.length);
+        if(entities.length > 0) {
+            printf("tileEntities:\n");
+            for(e in entities)
+                DumpEntity(entities[e])
+        }
+        if(tileEntities.length > 0) {
+            printf("tileEntities:\n");
+            for(e in tileEntities)
+                DumpTileEntity(tileEntities[e])
+        }
+    }
 }
 
 

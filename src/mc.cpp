@@ -226,6 +226,7 @@ void GenerateLevelDat(const std::string & ldPath, int spawnX, int spawnY, int sp
 
 int MC_World::Write(const std::string & wPath)
 {
+    cerr << "Writing world to " << wPath << endl;
     if(!DirExists(wPath)) {
         if(FileExists(wPath)) {
             cerr << wPath << " already exists, but is not a directory" << endl;
@@ -255,7 +256,12 @@ int MC_World::Write(const std::string & wPath)
         // Chunk grid is indexed from 0, must offset by lowest coordinates
         int x = allChunks[j]->xPos;
         int z = allChunks[j]->zPos;
-        string chunkDirPath = worldPath + "/" + chunkDirs[x % 64] + "/" + chunkDirs[z % 64];
+        int xmod64 = (x < 0) ? ((x % 64) + 64) : (x % 64);
+        int zmod64 = (z < 0) ? ((z % 64) + 64) : (z % 64);
+        string chunkDirPath = worldPath + "/" + chunkDirs[xmod64] + "/" + chunkDirs[zmod64];
+        // file name is c.X.Z.dat
+        string chunkDatPath = chunkDirPath + "/c." + ToBase36(x) + "." + ToBase36(z) + ".dat";
+        cerr << "Writing chunk to " << chunkDatPath << endl;
         
         if(!DirExists(chunkDirPath)) {
             if(FileExists(chunkDirPath)) {
@@ -264,8 +270,6 @@ int MC_World::Write(const std::string & wPath)
             }
             MakeDir(chunkDirPath);
         }
-        // file name is c.X.Z.dat
-        string chunkDatPath = chunkDirPath + "c." + ToBase36(x) + "." + ToBase36(z) + ".dat";
         WriteNBT_File(allChunks[j]->GetChunkNBT(), chunkDatPath);
     }
     

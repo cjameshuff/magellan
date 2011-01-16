@@ -695,7 +695,7 @@ void V8NBT_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     nbtIT->Set(String::New("TAG_Double"),    Integer::New(kNBT_TAG_Double));
     nbtIT->Set(String::New("TAG_String"),    Integer::New(kNBT_TAG_String));
     
-    // TODO: make accessors for type, name, size...
+    // TODO: make accessors for type, name, size...contents?
     nbtIT->Set(String::New("type"), FunctionTemplate::New(NBT_type));
     nbtIT->Set(String::New("name"), FunctionTemplate::New(NBT_name));
     
