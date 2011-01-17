@@ -204,7 +204,7 @@ void GenerateLevelDat(const std::string & ldPath, int spawnX, int spawnY, int sp
     leveldatNBT->AddTag(data);
     
     data->AddTag(new NBT_TagLong("Time", 0));
-    data->AddTag(new NBT_TagLong("LastPlayed", time(NULL)*1000));
+    data->AddTag(new NBT_TagLong("LastPlayed", MC_Timestamp()));
     
     NBT_TagCompound * player = new NBT_TagCompound("Player");
     data->AddTag(player);
@@ -238,7 +238,7 @@ int MC_World::Write(const std::string & wPath)
     if(!FileExists(slockPath)) {
         cout << "session.lock not found, will generate" << endl;
         FILE * slfile = fopen(slockPath.c_str(), "w");
-        int64_t ts = time(NULL)*1000;
+        int64_t ts = MC_Timestamp();
         fwrite(&ts, 1, 8, slfile);
         fclose(slfile);
     }

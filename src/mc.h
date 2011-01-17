@@ -34,8 +34,9 @@
 #include "nbt.h"
 #include "pngimage.h"
 #include "array2d.h"
-
 #include "blocktypes.h"
+
+#include <sys/time.h>
 
 struct MC_Block {
     uint8_t type;
@@ -43,6 +44,14 @@ struct MC_Block {
     uint8_t skylight;
     uint8_t blocklight;
 };
+
+
+int64_t MC_Timestamp() {
+    timeval tp;
+    gettimeofday(&tp, NULL);
+    return tp.tv_sec*1000 + tp.tv_usec/1000;
+}
+
 
 // This class wraps a NBT structure representing a Minecraft map chunk. An
 // instance of MC_Chunk gains ownership of the NBT structure on construction.
