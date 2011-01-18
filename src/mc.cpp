@@ -235,13 +235,13 @@ int MC_World::Write(const std::string & wPath)
         MakeDir(wPath);
     }
     string slockPath = wPath + "/session.lock";
-    if(!FileExists(slockPath)) {
-        cout << "session.lock not found, will generate" << endl;
-        FILE * slfile = fopen(slockPath.c_str(), "w");
-        int64_t ts = MC_Timestamp();
-        fwrite(&ts, 1, 8, slfile);
-        fclose(slfile);
-    }
+    
+    // Regenerate session lock file
+    FILE * slfile = fopen(slockPath.c_str(), "w");
+    int64_t ts = MC_Timestamp();
+    fwrite(&ts, 1, 8, slfile);
+    fclose(slfile);
+    
     string ldPath = wPath + "/level.dat";
     if(!FileExists(ldPath)) {
         cout << "level.dat not found, will generate" << endl;
@@ -261,7 +261,7 @@ int MC_World::Write(const std::string & wPath)
         string chunkDirPath = worldPath + "/" + chunkDirs[xmod64] + "/" + chunkDirs[zmod64];
         // file name is c.X.Z.dat
         string chunkDatPath = chunkDirPath + "/c." + ToBase36(x) + "." + ToBase36(z) + ".dat";
-        cerr << "Writing chunk to " << chunkDatPath << endl;
+//        cerr << "Writing chunk to " << chunkDatPath << endl;
         
         if(!DirExists(chunkDirPath)) {
             if(FileExists(chunkDirPath)) {
@@ -330,6 +330,27 @@ void MC_World::SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z)
     }
     chunk->SetBlock(block, x%16, y, z%16);
 }
+
+void MC_World::CalcHeightmap()
+{
+    
+}
+
+
+void MC_World::SetHeightmap(int x, int z, int height)
+{
+    if(height < 0 || height > 127)
+        return;
+    
+    MC_Chunk * chunk = ChunkAt(x/16, z/16);
+    if(chunk == NULL) {
+        chunk = new MC_Chunk(x/16, z/16);
+        AddChunk(chunk);
+        RebuildGrid();
+    }
+    chunk->SetHeightmap(x%16, z%16, height);
+}
+
 
 //******************************************************************************
 // MC_BlockBuffer

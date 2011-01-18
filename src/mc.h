@@ -46,7 +46,7 @@ struct MC_Block {
 };
 
 
-int64_t MC_Timestamp() {
+static inline int64_t MC_Timestamp() {
     timeval tp;
     gettimeofday(&tp, NULL);
     return tp.tv_sec*1000 + tp.tv_usec/1000;
@@ -84,6 +84,9 @@ class MC_Chunk {
     NBT_TagCompound * GetChunkNBT() {return chunkNBT;}
     const NBT_TagCompound * GetChunkNBT() const {return chunkNBT;}
     
+    void SetHeightmap(int32_t x, int32_t z, uint8_t val) {(*heightmap)[z*16 + x] = val;}
+    uint8_t GetHeightmap(int32_t x, int32_t z) const {return (*heightmap)[z*16 + x];}
+
 static int32_t GetIdx(int32_t x, int32_t y, int32_t z) {return y + (z + x*16)*128;}
 // Compute indices of neighboring blocks
 static int32_t GetIdxD(int32_t idx) {return idx - 1;}
@@ -115,14 +118,14 @@ static bool IdxGood(int32_t idx) {return idx > 0 && idx < (16*16*128);}
         size_t halfidx = idx >> 1;
         (*blocks)[idx] = block.type;
         if(idx & 0x01) {
-            (*data)[halfidx] = (block.data << 4) | ((*data)[halfidx] & 0x0F);
-            (*skylight)[halfidx] = (block.skylight << 4) | ((*skylight)[halfidx] & 0x0F);
-            (*blocklight)[halfidx] = (block.blocklight << 4) | ((*blocklight)[halfidx] & 0x0F);
+            (*data)[halfidx] = ((block.data << 4) & 0xF0) | ((*data)[halfidx] & 0x0F);
+            (*skylight)[halfidx] = ((block.skylight << 4) & 0xF0) | ((*skylight)[halfidx] & 0x0F);
+            (*blocklight)[halfidx] = ((block.blocklight << 4) & 0xF0) | ((*blocklight)[halfidx] & 0x0F);
         }
         else {
-            (*data)[halfidx] = ((*data)[halfidx] << 4) | (block.data & 0x0F);
-            (*skylight)[halfidx] = ((*skylight)[halfidx] << 4) | (block.skylight & 0x0F);
-            (*blocklight)[halfidx] = ((*blocklight)[halfidx] << 4) | (block.blocklight & 0x0F);
+            (*data)[halfidx] = ((*data)[halfidx] & 0xF0) | (block.data & 0x0F);
+            (*skylight)[halfidx] = ((*skylight)[halfidx] & 0xF0) | (block.skylight & 0x0F);
+            (*blocklight)[halfidx] = ((*blocklight)[halfidx] & 0xF0) | (block.blocklight & 0x0F);
         }
     }
     
@@ -187,6 +190,9 @@ class MC_World {
     // the chunk grid and do other tasks..
     void AddChunk(MC_Chunk * chunk);
     void RebuildGrid();
+    
+    void CalcHeightmap();
+    void SetHeightmap(int x, int z, int height);
     
     
     std::vector<MC_Chunk *> & GetAllChunks() {return allChunks;}
