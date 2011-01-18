@@ -163,11 +163,36 @@ static Handle<Value> NBT_newCompound(const Arguments & args) {
 }
 
 static Handle<Value> NBT_newList(const Arguments & args) {
-    // new_list(name), new_list()
-    V8_ReturnErrorIf(args.Length() > 1, "Bad parameters");
-    NBT_TagList * nbt = new NBT_TagList();
-    if(args.Length() == 1)
-        nbt->name = StringValue(args[0]);
+    // new_list(name, type[, length]), new_list(type[, length])
+    // TODO: implement length
+    V8_ReturnErrorIf(args.Length() > 3, "Bad parameters");
+    nbt_tag_t vt = kNBT_TAG_End;
+    size_t length = 0;
+    string name;
+    if(args.Length() == 1) {
+        vt = (nbt_tag_t)args[0]->IntegerValue();
+    }
+    else if(args.Length() == 2) {
+        // either (name, type) or (type, length)
+        if(args[0]->IsNumber())
+        {
+            // (type, length)
+            vt = (nbt_tag_t)args[0]->IntegerValue();
+            length = args[1]->IntegerValue();
+        }
+        else {
+            // (name, type)
+            name = StringValue(args[0]);
+            vt = (nbt_tag_t)args[1]->IntegerValue();
+        }
+    }
+    else {// (name, type, length)
+        name = StringValue(args[0]);
+        vt = (nbt_tag_t)args[1]->IntegerValue();
+        length = args[2]->IntegerValue();
+    }
+    NBT_TagList * nbt = new NBT_TagList(vt);
+    nbt->name = name;
     return WrapNBT(nbt);
 }
 
@@ -277,7 +302,7 @@ static Handle<Value> NBT_newindex(const Arguments & args)
             nbtcomp->SetTag(value);
         }
         else {
-            nbtcomp->SetTag(ExternVal<NBT_Tag>(args[1]));
+            nbtcomp->SetTag(ExternVal<NBT_Tag>(args[0]));
         }
         return Undefined();
     }
@@ -291,8 +316,12 @@ static Handle<Value> NBT_newindex(const Arguments & args)
         NBT_Tag * value = ExternVal<NBT_Tag>(args[1]);
         if(index < 0 || index >= (int)nbtlist->values.size())
             V8_ReturnError("invalid index");
-        if(value->Type() != nbtlist->ValueType())
-            V8_ReturnError("inserted item doesn't match list type");
+        if(value->Type() != nbtlist->ValueType()) {
+            ostringstream os;
+            os << "Inserted item doesn't match list type. Item type: "
+               << value->Type() << ", list type: " << nbtlist->ValueType();
+            V8_ReturnError(os.str().c_str());
+        }
         
         if(nbtlist->values[index] != NULL)
             delete nbtlist->values[index];
@@ -325,9 +354,21 @@ static Handle<Value> NBT_push_back(const Arguments & args)
     
     NBT_TagList * nbtlist = static_cast<NBT_TagList *>(nbt);
     NBT_Tag * value = ExternVal<NBT_Tag>(args[0]);
-    if(value && value->Type() != nbtlist->ValueType())
-        V8_ReturnError("inserted item doesn't match list type");
-    nbtlist->values.push_back(value);
+    if(value) {
+        // Initialize valueType of empty list from first inserted value
+        if(nbtlist->values.size() == 0)
+            nbtlist->valueType = value->Type();
+        else if(value->Type() != nbtlist->ValueType()) {
+            ostringstream os;
+            os << "Inserted item doesn't match list type. Item type: "
+               << value->Type() << ", list type: " << nbtlist->ValueType();
+            V8_ReturnError(os.str().c_str());
+        }
+        nbtlist->values.push_back(value);
+    }
+    else {
+        V8_ReturnError("Attempted to insert null value into NBT_TagList");
+    }
     return Undefined();
 }
 

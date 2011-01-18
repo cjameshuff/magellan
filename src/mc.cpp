@@ -309,9 +309,16 @@ MC_Block MC_World::GetBlock(int32_t x, int32_t y, int32_t z) const
     if(y < 0 || y > 127)
         return block;
     
-    const MC_Chunk * chunk = ChunkAt(x/16, z/16);
-    if(chunk)
-        chunk->GetBlock(block, x%16, y, z%16);
+    // need to round negative numbers down, not toward zero
+    int cx = (x < 0)? ((x/16) - 1) : x/16;
+    int cz = (z < 0)? ((z/16) - 1) : z/16;
+    
+    const MC_Chunk * chunk = ChunkAt(cx, cz);
+    if(chunk) {
+        int bx = (x < 0)? ((x%16) + 16) : x%16;
+        int bz = (z < 0)? ((z%16) + 16) : z%16;
+        chunk->GetBlock(block, bx, y, bz);
+    }
     return block;
 }
 
@@ -322,13 +329,19 @@ void MC_World::SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z)
     if(y < 0 || y > 127)
         return;
     
-    MC_Chunk * chunk = ChunkAt(x/16, z/16);
+    // need to round negative numbers down, not toward zero
+    int cx = (x < 0)? ((x/16) - 1) : x/16;
+    int cz = (z < 0)? ((z/16) - 1) : z/16;
+    
+    MC_Chunk * chunk = ChunkAt(cx, cz);
     if(chunk == NULL) {
-        chunk = new MC_Chunk(x/16, z/16);
+        chunk = new MC_Chunk(cx, cz);
         AddChunk(chunk);
         RebuildGrid();
     }
-    chunk->SetBlock(block, x%16, y, z%16);
+    int bx = (x < 0)? ((x%16) + 16) : x%16;
+    int bz = (z < 0)? ((z%16) + 16) : z%16;
+    chunk->SetBlock(block, bx, y, bz);
 }
 
 void MC_World::CalcHeightmap()
@@ -342,13 +355,19 @@ void MC_World::SetHeightmap(int x, int z, int height)
     if(height < 0 || height > 127)
         return;
     
-    MC_Chunk * chunk = ChunkAt(x/16, z/16);
+    // need to round negative numbers down, not toward zero
+    int cx = (x < 0)? ((x/16) - 1) : x/16;
+    int cz = (z < 0)? ((z/16) - 1) : z/16;
+    
+    MC_Chunk * chunk = ChunkAt(cx, cz);
     if(chunk == NULL) {
-        chunk = new MC_Chunk(x/16, z/16);
+        chunk = new MC_Chunk(cx, cz);
         AddChunk(chunk);
         RebuildGrid();
     }
-    chunk->SetHeightmap(x%16, z%16, height);
+    int bx = (x < 0)? ((x%16) + 16) : x%16;
+    int bz = (z < 0)? ((z%16) + 16) : z%16;
+    chunk->SetHeightmap(bx, bz, height);
 }
 
 

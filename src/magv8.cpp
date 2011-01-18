@@ -123,6 +123,21 @@ static Handle<Value> MCMap_set_block(const Arguments & args)
     return Undefined();
 }
 
+// get_block_chunk_nbt(): Get the chunk NBT for a given block
+static Handle<Value> MCMap_get_block_chunk_nbt(const Arguments & args) {
+    if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
+    MC_World * world = ExternVal<MC_World>(args.This());
+    int x = args[0]->IntegerValue();
+    int z = args[1]->IntegerValue();
+    // need to round negative numbers down, not toward zero
+    int cx = (x < 0)? ((x/16) - 1) : x/16;
+    int cz = (z < 0)? ((z/16) - 1) : z/16;
+    MC_Chunk * chunk = world->ChunkAt(cx, cz);
+    if(chunk)
+        return WrapNBT(chunk->GetChunkNBT());
+    else
+        return Null();
+}
 static Handle<Value> MCMap_get_chunk_nbt(const Arguments & args) {
     if(args.Length() != 2) return ThrowException(String::New("Bad parameters"));
     MC_World * world = ExternVal<MC_World>(args.This());
@@ -368,6 +383,7 @@ void MGV8_InitBindings(v8::Handle<v8::ObjectTemplate> & global)
     mapIT->Set(String::New("set_block"), FunctionTemplate::New(MCMap_set_block));
     mapIT->Set(String::New("get_all_chunk_nbts"), FunctionTemplate::New(MCMap_get_all_chunk_nbts));
     mapIT->Set(String::New("get_chunk_nbt"), FunctionTemplate::New(MCMap_get_chunk_nbt));
+    mapIT->Set(String::New("get_block_chunk_nbt"), FunctionTemplate::New(MCMap_get_block_chunk_nbt));
     mapIT->Set(String::New("stats"), FunctionTemplate::New(MCMap_stats));
     mapIT->Set(String::New("render"), FunctionTemplate::New(MCMap_render));
     

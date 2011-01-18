@@ -1,12 +1,18 @@
 
 
 run_script("mcdefs.js");
+run_script("maptools.js");
 
 function irand(mn, mx) {return Math.floor(mn + (mx - mn)*Math.random());}
 
-// '#' indicates a free location
-// '.' indicates room
+
+
+// '#' indicates locations outside the dungeon
+// '.' indicates open room space
+// ',' indicates unavailable room space (in front of doors, etc)
 // 'X' indicates wall
+// 'T' indicates wall junctions
+// 'F' indicates door frames
 
 function Dungeon(_xSize, _zSize) {
     this.xSize = _xSize;
@@ -139,6 +145,45 @@ Dungeon.prototype.FindJoins = function()
     CopyMatrix(0, this.xSize, 0, this.zSize, this.floorplan, this.workbuffer);
 }
 
+Dungeon.prototype.DecorateWalls = function()
+{
+    // Add things like door frames, corner decorations, etc.
+    var xSize = this.xSize;
+    var zSize = this.zSize;
+    var floorplan = this.floorplan;
+    var workbuffer = this.workbuffer;
+    
+    CopyMatrix(0, this.xSize, 0, this.zSize, this.workbuffer, this.floorplan);
+    for(var x = 0; x < xSize; ++x) {
+        for(var z = 0; z < zSize; ++z) {
+            // Mark door frames: wall columns adjacent to doorways.
+            if(floorplan[x][z] == 'X' || floorplan[x][z] == 'T')
+            {
+                var count = 0;
+                count += (floorplan[x-1][z] == '_')? 1 : 0;
+                count += (floorplan[x+1][z] == '_')? 1 : 0;
+                count += (floorplan[x][z-1] == '_')? 1 : 0;
+                count += (floorplan[x][z+1] == '_')? 1 : 0;
+                if(count > 0)
+                    workbuffer[x][z] = 'F';
+            }
+            
+            // Mark space in front of doorways...keep doors from being blocked by items
+            if(floorplan[x][z] == '.')
+            {
+                var count = 0;
+                count += (floorplan[x-1][z] == '_')? 1 : 0;
+                count += (floorplan[x+1][z] == '_')? 1 : 0;
+                count += (floorplan[x][z-1] == '_')? 1 : 0;
+                count += (floorplan[x][z+1] == '_')? 1 : 0;
+                if(count > 0)
+                    workbuffer[x][z] = ',';
+            }
+        }
+    }
+    CopyMatrix(0, this.xSize, 0, this.zSize, this.floorplan, this.workbuffer);
+}
+
 Dungeon.prototype.GrowRoom = function(room)
 {
     var xSize = this.xSize;
@@ -149,6 +194,8 @@ Dungeon.prototype.GrowRoom = function(room)
     
     
     var grew = false;
+    // TODO: randomize selection of growth axis to remove bias in growth direction
+    
     // grow along z axis
     // min and max blocks are of the room interior. +- 1 is in the wall, we want to
     // see if we can push the wall out....check the far side of the wall, then erase wall.
@@ -337,11 +384,19 @@ Dungeon.prototype.GeneratePassages = function()
                 println("Error, empty locs entry!");
                 continue;
             }
+            // TODO: Put door a block away from room corners if possible
             var loc = locs[irand(0, locs.length)];
             floorplan[loc[0]][loc[1]] = '_';
         }
 //        printf("room: %@ has %@ neighbors\n", r, room.neighbors.length);
     }
+}
+
+Dungeon.prototype.PopulateRooms = function()
+{
+//    for(var r in rooms) {
+//        var room = rooms[r];
+//    }
 }
 
 
@@ -388,6 +443,8 @@ Dungeon.prototype.GenerateFloorplan = function(numRooms)
     this.FindBoundaries();
     this.FindJoins();
     this.GeneratePassages();
+    this.DecorateWalls();
+    this.PopulateRooms();
     
     return floorplan;
 }
@@ -407,24 +464,47 @@ Dungeon.prototype.PrintFloorplan = function() {
     }
 }
 
-Dungeon.prototype.PlaceDungeon = function(world, xoff, yoff, zoff) {
+// Make an axis-aligned rectangular prism
+function MakeSlab(xmin, xmax, ymin, ymax, zmin, zmax, type) {
+    for(var x = xmin; x <= xmax; ++x) {
+        for(var y = ymin; y <= ymax; ++y) {
+            for(var z = zmin; z <= zmax; ++z) {
+                world.set_block(x + xoff, yoff, z + zoff, type);
+            }
+        }
+    }
+}
+function MakeSlabFn(xmin, xmax, ymin, ymax, zmin, zmax, typeFn) {
+    for(var x = xmin; x <= xmax; ++x) {
+        for(var y = ymin; y <= ymax; ++y) {
+            for(var z = zmin; z <= zmax; ++z) {
+                world.set_block(x + xoff, yoff, z + zoff, typeFn(x, y, z));
+            }
+        }
+    }
+}
+
+Dungeon.prototype.PlaceDungeon = function(world, xoff, yoff, zoff)
+{
     var xSize = this.xSize;
     var zSize = this.zSize;
     var floorplan = this.floorplan;
     
     var airID = BLOCK_IDS["Air"];
     var glassID = BLOCK_IDS["Air"];
+    var logID = BLOCK_IDS["Log"];
     var stoneID = BLOCK_IDS["Stone"];
-    var cobblestoneID = BLOCK_IDS["Cobblestone"];
-    var mossyCobblestoneID = BLOCK_IDS["MossyCobblestone"];
+    var cstoneID = BLOCK_IDS["Cobblestone"];
+    var mossStoneID = BLOCK_IDS["MossyCobblestone"];
     
     var bl = 0;
     var sl = 0;
     
-    for(var y = 0; y < 128; ++y) {
-        var block = world.get_block(xoff+3, y, zoff+1);
-        printf("%@] type: %@ bl: %@ sl: %@ data: %@\n", y, block.type, block.blocklight, block.skylight, block.data);
-    }
+//    for(var y = 0; y < 128; ++y) {
+//        var block = world.get_block(xoff+3, y, zoff+1);
+//        printf("%@] type: %@ bl: %@ sl: %@ data: %@\n",
+//          y, block.type, block.blocklight, block.skylight, block.data);
+//    }
 //    for(var x = 0; x < 64; ++x) {
 //        for(var z = 0; z < 64; ++z) {
 //        }
@@ -435,16 +515,42 @@ Dungeon.prototype.PlaceDungeon = function(world, xoff, yoff, zoff) {
 //            for(var y = 0; y < 15; ++y)
 //                world.set_block(x + xoff, y + yoff + 1, z + zoff, airID, 0, 15, 0);
             
+            // floor
             world.set_block(x + xoff, yoff, z + zoff, stoneID, 0, sl, bl);
-            world.set_block(x + xoff, yoff + 5, z + zoff, stoneID, 0, sl, bl);
+            
+            // ceiling
+            world.set_block(x + xoff, yoff + 5, z + zoff, cstoneID, 0, sl, bl);
+            
             for(var y = 1; y < 5; ++y) {
-                if(floorplan[x][z] == '.' || floorplan[x][z] == '_')
+                switch(floorplan[x][z]) {
+                  case '.':
+                  case ',':// empty space
                     world.set_block(x + xoff, y + yoff, z + zoff, airID, 0, sl, bl);
-                else
-                    world.set_block(x + xoff, y + yoff, z + zoff, mossyCobblestoneID, 0, sl, bl);
+                  break;
+                  case '_':// Door
+                    if(y < 3)
+                        world.set_block(x + xoff, y + yoff, z + zoff, airID, 0, sl, bl);
+                    else if(y == 3)
+                        world.set_block(x + xoff, y + yoff, z + zoff, logID, 0, sl, bl);
+                    else
+                        world.set_block(x + xoff, y + yoff, z + zoff, cstoneID, 0, sl, bl);
+                  break;
+                  case 'F':
+                    // doorframe
+                    if(y <= 3)
+                        world.set_block(x + xoff, y + yoff, z + zoff, logID, 0, sl, bl);
+                    else
+                        world.set_block(x + xoff, y + yoff, z + zoff, cstoneID, 0, sl, bl);
+                  break;
+                  case 'X':
+                  case '#':
+                  case 'T':
+                    // Wall
+                    world.set_block(x + xoff, y + yoff, z + zoff, cstoneID, 0, sl, bl);
+                  break;
+                }
             }
             
-//            world.set_heightmap(x, z, yoff + 5 + 2);// y, or y+1?
             // Recompute heightmap
             for(var y = 127; y > 0; --y) {
                 var bt = world.get_block(x, y, z).type;
@@ -465,6 +571,21 @@ dungeon.GenerateFloorplan(50);
 dungeon.PrintFloorplan();
 
 
+MC_World.prototype.add_tile_entity = function(x, y, z, id) {
+    var chunk = this.get_block_chunk_nbt(x, z);
+    var level = chunk.get("Level");
+    var entities = level.get("Entities");
+    var tileEntities = level.get("TileEntities");
+    var entity = NBT.new_compound();
+    entity.set(NBT.new_string("id", id));
+    entity.set(NBT.new_integer("x", x));
+    entity.set(NBT.new_integer("y", y));
+    entity.set(NBT.new_integer("z", z));
+    tileEntities.push_back(entity);
+    return entity;
+}
+
+
 var WORLDPATH = MCPATH + "/saves/World" + 3;
 printf("WORLDPATH = %@\n", WORLDPATH);
 
@@ -472,16 +593,36 @@ world = new MC_World(WORLDPATH);
 
 dungeon.PlaceDungeon(world, 0, 64, 0);
 
+world.add_chest(4, 65, 4);
+
 world.calc_heightmap();
 world.write(WORLDPATH);
 
 
-//var mn = 1;
-//var mx = 63;
-//printf("irand(mn, mx): %@\n", irand(mn, mx))
-//printf("irand(mn, mx): %@\n", irand(mn, mx))
-//printf("irand(mn, mx): %@\n", irand(mn, mx))
-//printf("irand(mn, mx): %@\n", irand(mn, mx))
-//printf("irand(mn, mx): %@\n", irand(mn, mx))
-//printf("irand(mn, mx): %@\n", irand(mn, mx))
+
+//var chunk = world.get_chunk_nbt(0,-1);
+//var level = chunk.get("Level");
+//var entities = level.get("Entities").contents;
+//var tileEntities = level.get("TileEntities").contents;
+//
+//printf("entities:\n");
+//for(e in entities)
+//    println(entities[e]);
+//printf("\ntile entities:\n");
+//for(e in tileEntities)
+//    println(tileEntities[e]);
+//
+//var xoff = 0;
+//var zoff = -8;
+//var yoff = 65;
+//for(var x = 0; x < 8; ++x) {
+//    for(var z = 0; z < 8; ++z) {
+//        var block = world.get_block(x + xoff, yoff, z + zoff);
+//        printf("%@,%@,%@: type: %@ data: %@, ",
+//            x + xoff, yoff, z + zoff, block.type, block.data);
+//        block = world.get_block(x + xoff, yoff+1, z + zoff);
+//        printf("%@: type: %@ data: %@\n",
+//            yoff + 1, block.type, block.data);
+//    }
+//}
 
