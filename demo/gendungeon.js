@@ -1,6 +1,6 @@
 
 
-run_script("mcdefs.js");
+//run_script("mcdefs.js");
 run_script("maptools.js");
 
 function irand(mn, mx) {return Math.floor(mn + (mx - mn)*Math.random());}
@@ -445,6 +445,7 @@ Dungeon.prototype.GenerateFloorplan = function(numRooms)
     this.GeneratePassages();
     this.DecorateWalls();
     this.PopulateRooms();
+    // TODO: "distress" stage, structural damage
     
     return floorplan;
 }
@@ -493,6 +494,7 @@ Dungeon.prototype.PlaceDungeon = function(world, xoff, yoff, zoff)
     var airID = BLOCK_IDS["Air"];
     var glassID = BLOCK_IDS["Air"];
     var logID = BLOCK_IDS["Log"];
+    var gravelID = BLOCK_IDS["Gravel"];
     var stoneID = BLOCK_IDS["Stone"];
     var cstoneID = BLOCK_IDS["Cobblestone"];
     var mossStoneID = BLOCK_IDS["MossyCobblestone"];
@@ -516,7 +518,10 @@ Dungeon.prototype.PlaceDungeon = function(world, xoff, yoff, zoff)
 //                world.set_block(x + xoff, y + yoff + 1, z + zoff, airID, 0, 15, 0);
             
             // floor
-            world.set_block(x + xoff, yoff, z + zoff, stoneID, 0, sl, bl);
+            if(Math.random() < 0.3)
+                world.set_block(x + xoff, yoff, z + zoff, mossStoneID, 0, sl, bl);
+            else
+                world.set_block(x + xoff, yoff, z + zoff, cstoneID, 0, sl, bl);
             
             // ceiling
             world.set_block(x + xoff, yoff + 5, z + zoff, cstoneID, 0, sl, bl);
@@ -551,6 +556,28 @@ Dungeon.prototype.PlaceDungeon = function(world, xoff, yoff, zoff)
                 }
             }
             
+            if(floorplan[x][z] == '.') {
+                if(Math.random() < 1.0/100) {
+                    world.add_chest(x, yoff + 1, z);
+                    // TODO: add loot!
+                }
+                else if(Math.random() < 1.0/100) {
+                    // Mob, Monster, Creeper, Skeleton, Spider, Giant,
+                    // Zombie, Slime, PigZombie, Ghast, Pig, Sheep, Cow, Chicken
+//                    var moblist = ["Creeper", "Skeleton", "Spider", "Zombie", "Slime", "PigZombie"];
+//                    world.add_mob_spawner(x, yoff + 1, z, moblist[irand(0, moblist.length)], 20);
+                    world.add_mob_spawner(x, yoff + 1, z, "PigZombie", 20);
+                }
+                else if(Math.random() < 3.0/100) {// Cave in roof
+                    world.set_block(x + xoff, yoff + 1, z + zoff, gravelID, 0, sl, bl);
+                    world.set_block(x + xoff, yoff + 5, z + zoff, airID, 0, sl, bl);
+                }
+                else if(Math.random() < 1.0/100) {// just random debris
+                    world.set_block(x + xoff, yoff + 1, z + zoff, gravelID, 0, sl, bl);
+                }
+                
+            }
+            
             // Recompute heightmap
             for(var y = 127; y > 0; --y) {
                 var bt = world.get_block(x, y, z).type;
@@ -571,29 +598,15 @@ dungeon.GenerateFloorplan(50);
 dungeon.PrintFloorplan();
 
 
-MC_World.prototype.add_tile_entity = function(x, y, z, id) {
-    var chunk = this.get_block_chunk_nbt(x, z);
-    var level = chunk.get("Level");
-    var entities = level.get("Entities");
-    var tileEntities = level.get("TileEntities");
-    var entity = NBT.new_compound();
-    entity.set(NBT.new_string("id", id));
-    entity.set(NBT.new_integer("x", x));
-    entity.set(NBT.new_integer("y", y));
-    entity.set(NBT.new_integer("z", z));
-    tileEntities.push_back(entity);
-    return entity;
-}
 
-
-var WORLDPATH = MCPATH + "/saves/World" + 3;
+var WORLDPATH = MCPATH + "/saves/World" + 5;
 printf("WORLDPATH = %@\n", WORLDPATH);
 
 world = new MC_World(WORLDPATH);
 
 dungeon.PlaceDungeon(world, 0, 64, 0);
 
-world.add_chest(4, 65, 4);
+//world.add_chest(4, 65, 4);
 
 world.calc_heightmap();
 world.write(WORLDPATH);

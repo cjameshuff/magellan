@@ -186,7 +186,7 @@ int MC_World::Load(const std::string & wPath)
     cout << "Loading..." << endl;
     for(size_t j = 0; j < filepaths.size(); ++j)
     {
-//        cout << "Loading " << filepaths[j] << endl;
+        cout << "Loading " << filepaths[j] << endl;
         NBT_TagCompound * nbt = LoadNBT_File(filepaths[j]);
         if(nbt)
             AddChunk(new MC_Chunk(nbt));
@@ -315,9 +315,7 @@ MC_Block MC_World::GetBlock(int32_t x, int32_t y, int32_t z) const
     
     const MC_Chunk * chunk = ChunkAt(cx, cz);
     if(chunk) {
-        int bx = (x < 0)? ((x%16) + 16) : x%16;
-        int bz = (z < 0)? ((z%16) + 16) : z%16;
-        chunk->GetBlock(block, bx, y, bz);
+        chunk->GetBlock(block, x - cx*16, y, z - cz*16);
     }
     return block;
 }
@@ -335,13 +333,14 @@ void MC_World::SetBlock(const MC_Block & block, int32_t x, int32_t y, int32_t z)
     
     MC_Chunk * chunk = ChunkAt(cx, cz);
     if(chunk == NULL) {
-        chunk = new MC_Chunk(cx, cz);
-        AddChunk(chunk);
-        RebuildGrid();
+        cout << "Chunk for block does not exist!" << endl;
+        return;// FIXME: No tag "Level" in ""!
+//        cout << "Chunk for block does not exist, creating one..." << endl;
+//        chunk = new MC_Chunk(cx, cz);
+//        AddChunk(chunk);
+//        RebuildGrid();
     }
-    int bx = (x < 0)? ((x%16) + 16) : x%16;
-    int bz = (z < 0)? ((z%16) + 16) : z%16;
-    chunk->SetBlock(block, bx, y, bz);
+    chunk->SetBlock(block, x - cx*16, y, z - cz*16);
 }
 
 void MC_World::CalcHeightmap()
@@ -361,13 +360,13 @@ void MC_World::SetHeightmap(int x, int z, int height)
     
     MC_Chunk * chunk = ChunkAt(cx, cz);
     if(chunk == NULL) {
-        chunk = new MC_Chunk(cx, cz);
-        AddChunk(chunk);
-        RebuildGrid();
+        cout << "Chunk for block does not exist!" << endl;
+        return;
+//        chunk = new MC_Chunk(cx, cz);
+//        AddChunk(chunk);
+//        RebuildGrid();
     }
-    int bx = (x < 0)? ((x%16) + 16) : x%16;
-    int bz = (z < 0)? ((z%16) + 16) : z%16;
-    chunk->SetHeightmap(bx, bz, height);
+    chunk->SetHeightmap(x - cx*16, z - cz*16, height);
 }
 
 

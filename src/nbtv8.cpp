@@ -587,12 +587,16 @@ static Handle<Value> RunScript(const Arguments & args)
 {
     if(args.Length() != 1) V8_ReturnError("Bad parameters");
     string scriptName = StringValue(args[0]);
-    RunMagellanScript(scriptName);
-    return Undefined();
+    
+    if(RunMagellanScript(scriptName))
+        return Undefined();
+    else
+        V8_ReturnError("Script error.");
+
 }
 //******************************************************************************
 
-void RunMagellanScript(const std::string & scriptName)
+bool RunMagellanScript(const std::string & scriptName)
 {
     string path = scriptName;
     
@@ -616,7 +620,7 @@ void RunMagellanScript(const std::string & scriptName)
     }
     
 //	printf("Running file: %s\n", path.c_str());
-    ExecuteJS_File(path);
+    return ExecuteJS_File(path);
 }
 
 //******************************************************************************

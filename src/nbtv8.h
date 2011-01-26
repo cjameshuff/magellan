@@ -36,6 +36,6 @@ v8::Handle<v8::Object> WrapNBT(NBT_Tag * val);
 // Create a wrapper that owns its own NBT tag and performs all cleanup on garbage collection.
 //v8::Handle<v8::Object> NewNBT(const NBT_Tag & val);
 
-void RunMagellanScript(const std::string & scriptName);
+bool RunMagellanScript(const std::string & scriptName);
 
 #endif // V8NBT_H
