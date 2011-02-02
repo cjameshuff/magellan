@@ -592,7 +592,6 @@ static Handle<Value> RunScript(const Arguments & args)
         return Undefined();
     else
         V8_ReturnError("Script error.");
-
 }
 //******************************************************************************
 
