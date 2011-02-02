@@ -321,7 +321,7 @@ static Handle<Value> RenderMap(const Arguments & args)
     
     if(TryGet(optsObj, "scale", val)) opts.scale = val->IntegerValue();
     if(TryGet(optsObj, "peel", val)) opts.peel = val->IntegerValue();
-    if(TryGet(optsObj, "layers", val)) opts.layers = val->BooleanValue();
+//    if(TryGet(optsObj, "layers", val)) opts.layers = val->BooleanValue();
     if(TryGet(optsObj, "output_file", val)) opts.outputFile = StringValue(val);
     
     string dmode;

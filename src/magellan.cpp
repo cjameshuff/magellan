@@ -23,17 +23,7 @@
 
 // Magellan Minecraft Mapper
 // Contact: Christopher James Huff <cjameshuff@gmail.com>
-// 
-// Render modes:
-//
-// Top: top view
-//  options:
-//      peel n - strip away dirt/rock until an underlying airspace is exposed, n times
-//      lighting alt | altgray | day | night | twilight
-//      countours
-// Layers: n-block-thick slices, dumped in layers directory
-// 
-// Caves
+
 
 #include <iostream>
 #include <fstream>
@@ -148,33 +138,10 @@ void WriteImage(SimpleImage & outputImage, const string & path)
 
 void RenderMap(const MagellanOptions & opts)
 {
-    // world z coordinate is image x coordinate, to put north at the top and east at the right
-    cout << "Rendering image" << endl;
-    if(opts.layers)
-    {
-        int s = opts.yMin, n = opts.yMax;
-        for(int y = opts.yMin; y <= n; ++y)
-        {
-            cout << "Rendering layer " << y << endl;
-            ostringstream fname;
-            fname << opts.outputFile << "/layer" << setw(3) << setfill('0') << y << ".png";
-            SimpleImage outputImage(16*opts.zSize*opts.scale, 16*opts.xSize*opts.scale, 4);
-            outputImage.Clear(0, 0, 0, 255);
-            
-            MagellanOptions layerOpts = opts;
-            layerOpts.yMax = y;
-            layerOpts.yMin = max(s, opts.yMax - 8);
-            DrawTop(outputImage, layerOpts);
-            
-            WriteImage(outputImage, fname.str());
-        }
-    }
-    else {
-        SimpleImage outputImage(16*opts.zSize*opts.scale, 16*opts.xSize*opts.scale, 4);
-        outputImage.Clear(0, 0, 0, 255);
-        DrawTop(outputImage, opts);
-        WriteImage(outputImage, opts.outputFile.c_str());
-    }
+    SimpleImage outputImage(16*opts.zSize*opts.scale, 16*opts.xSize*opts.scale, 4);
+    outputImage.Clear(0, 0, 0, 255);
+    DrawTop(outputImage, opts);
+    WriteImage(outputImage, opts.outputFile.c_str());
     cout << "Done." << endl;
 }
 

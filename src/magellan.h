@@ -49,7 +49,6 @@ struct MagellanOptions {
 //    int lighting;
     
     int lightingMode;
-    bool layers;
     
     int yMin, yMax;
     int xMin, xMax;
