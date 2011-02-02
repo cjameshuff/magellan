@@ -10,7 +10,6 @@ render_map({
     scale: 4, // tile size, 1, 2, 4, 8, or 16. 1: 1 pixel, 2: 2x2 pixel tiles, 4: 4x4...
     peel: 0,  // "peel back" blocks to an open area underneath, this many times.
     // Not the number of blocks to peel back.
-    layers: false, // render all layers in range
     // Render area can be restricted to a rectangular range of chunks specified in chunk coordinates:
 //    zmin: 5, zmax: 15, // east-west, increasing westward
 //    xmin: 10, xmax: 20, // north-south, increasing southward
