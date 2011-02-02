@@ -208,6 +208,7 @@ void LoadTextures()
     LoadTexture(kBT_Dirt, 2, 0);
     // grassy dirt, side
     LoadTexture(kBT_Wood, 4, 0);
+    LoadTexture(kBT_WoodStairs, 4, 0);// Do something special here?
     // Doublestep side
     LoadTexture(kBT_DoubleStep, 6, 0);
     LoadTexture(kBT_Step, 6, 0);
@@ -260,6 +261,7 @@ void LoadTextures()
     LoadTexture(kBT_Glass, 1, 3, false);
     LoadTexture(kBT_DiamondOre, 2, 3);
     LoadTexture(kBT_RedstoneOre, 3, 3);
+    LoadTexture(kBT_GlowingRedstoneOre, 3, 3);
     // TODO: color these properly, along with grass
     LoadTexture(kBT_Leaves, 4, 3, false, 0.35f, 0.65f, 0.1f);
     //LoadTexture(kBT_, 6, 3);// unused
@@ -294,10 +296,10 @@ void LoadTextures()
     LoadTexture(kBT_WoodDoor, 1, 5, false);
     LoadTexture(kBT_IronDoor, 2, 5, false);
     LoadTexture(kBT_Ladder, 3, 5, false);
-    LoadTexture(kBT_Fence, 3, 5, false);// same as ladder for now
     LoadTexture(kBT_Soil, 6, 5);
     LoadTexture(kBT_Crops, 15, 5, false);
     
+    LoadTexture(kBT_Lever, 0, 6, false);
     LoadTexture(kBT_RedstoneTorchOn, 3, 6, false);
     LoadTexture(kBT_RedstoneWire, 4, 6, false);// Need to do more intelligent redstone rendering
     //LoadTexture(kBT_, 5, 6);// redstone wire, one way
@@ -328,6 +330,10 @@ void LoadTextures()
     
     LoadTexture(kBT_Lava, 15, 15);
     LoadTexture(kBT_LavaPooled, 15, 15);
+    
+    // Placeholders
+    LoadTexture(kBT_Fence, 3, 5, false);// same as ladder for now
+    LoadTexture(kBT_SignPost, 0, 6, false);// Actually a lever
     
     // TODO: need to support multiple textures per block type, multiple cloth colors and log types
 }
