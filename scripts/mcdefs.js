@@ -60,6 +60,10 @@ var BLOCK_IDS = {
     "Dispenser":     0x17,
     "Sandstone":     0x18,
     "NoteBlock":     0x19,
+    "BedBlock":      0x1A,
+    "PoweredRail":   0x1B,
+    "DetectorRail":  0x1C,
+    "Web":           0x1E,
     // 0x1A-0x22 and 0x24 are unused
     "Wool":          0x23,
     
@@ -70,7 +74,7 @@ var BLOCK_IDS = {
     "GoldBlock":      0x29,
     "IronBlock":      0x2A,
     "DoubleStep":     0x2B,
-    "Step":           0x2C,
+    "Slab":           0x2C,
     "Brick":          0x2D,
     "TNT":            0x2E,
     "BookCase":       0x2F,
@@ -94,7 +98,7 @@ var BLOCK_IDS = {
     
     "WoodDoorBlock":       0x40,
     "Ladder":              0x41,
-    "MinecartTrack":       0x42,
+    "Rail":                0x42,
     "CobblestoneStairs":   0x43,
     "WallSign":            0x44,// sign hung on a wall
     "Lever":               0x45,
@@ -226,13 +230,17 @@ var ITEM_IDS = {
     "Dye":                 0x15F,
     "Bone":                0x160,
     "Sugar":               0x161,
+    "Cake":                0x162,
+    "Bed":                 0x163,
+    "Repeater":            0x164,
+    "Cookie":              0x165,
     "GoldRecord":          0x8D0,
     "GreenRecord":         0x8D1
 };
 // Note: Dyes require additional data, stored in the "damage" field.
 
 var DYE_IDS = {
-    "InkSack":         0x0,
+    "InkSac":         0x0,
     "RoseRed":         0x1,
     "CactusGreen":     0x2,
     "CocoBeans":       0x3,
@@ -250,6 +258,24 @@ var DYE_IDS = {
     "BoneMeal":        0xF
 };
 
+var SLAB_IDS = {
+    "StoneSlab":   0x0,
+    "SandstoneSlab": 0x1,
+    "WoodSlab":  0x1,
+    "CobblestoneSlab":  0x1
+}
+
+var WOOD_IDS = {
+    "Oak":   0x0,
+    "Pine":  0x1,
+    "Birch": 0x2
+}
+
+var FUEL_IDS = {
+    "Coal":   0x0,
+    "Charcoal":  0x1
+}
+
 // Generate reverse lookup table mapping IDs to names
 for(var i in BLOCK_IDS)
     BLOCK_NAMES[BLOCK_IDS[i]] = i;
@@ -263,16 +289,16 @@ for(var i in ITEM_IDS)
     ITEM_NAMES[ITEM_IDS[i]] = i;
 
 
-function LoadLevelDat(worldNum)
+function LoadLevelDat(worldName)
 {
-    var WORLDPATH = MCPATH + "/saves/World" + worldNum;
+    var WORLDPATH = MCPATH + "/saves/" + worldName;
     var LEVELDATPATH = WORLDPATH + "/level.dat";
     return NBT.load(LEVELDATPATH);
 }
 
-function WriteLevelDat(level_dat, worldNum) {
+function WriteLevelDat(level_dat, worldName) {
     // Make backup of old version and write new level.dat
-    var WORLDPATH = MCPATH + "/saves/World" + worldNum;
+    var WORLDPATH = MCPATH + "/saves/" + worldName;
     var LEVELDATPATH = WORLDPATH + "/level.dat";
     var err = os.rename(LEVELDATPATH, LEVELDATPATH + ".bkp");
     if(err != 0) {

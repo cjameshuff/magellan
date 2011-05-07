@@ -1,8 +1,8 @@
-// Dump inventory. One parameter, world number.
+// Dump inventory. One parameter, world name.
 
 if(ARGV.length < 3) {
     println("\ndumpents usage:");
-    println("\tnbtutil dumpents WORLDNUM");
+    println("\tnbtutil dumpents WORLD");
     exit()
 }
 
@@ -71,7 +71,7 @@ function DumpChunk(chunk) {
 }
 
 
-var WORLDPATH = MCPATH + "/saves/World" + ARGV[2];
+var WORLDPATH = MCPATH + "/saves/" + ARGV[2];
 printf("WORLDPATH = %@\n", WORLDPATH);
 
 world = new MC_World(WORLDPATH);

@@ -1,14 +1,15 @@
-// Remove damage from all inventory items, including armor. One parameter, world number.
+// Remove damage from all inventory items, including armor.
+// One parameter, world name.
 
 if(ARGV.length < 3) {
     println("\nundamage usage:");
-    println("\tmagellan undamage WORLDNUM");
+    println("\tmagellan undamage WORLD");
     exit();
 }
 
 run_script("mcdefs.js");
 
-WORLDPATH = MCPATH + "/saves/World" + ARGV[2]
+WORLDPATH = MCPATH + "/saves/" + ARGV[2]
 
 LEVELDATPATH = WORLDPATH + "/level.dat"
 

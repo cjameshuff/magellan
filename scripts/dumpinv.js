@@ -1,14 +1,14 @@
-// Dump inventory. One parameter, world number.
+// Dump inventory. One parameter, world name.
 
 if(ARGV.length < 3) {
     println("\ndumpinv usage:");
-    println("\tnbtutil dumpinv WORLDNUM");
+    println("\tnbtutil dumpinv WORLD");
     exit()
 }
 
 run_script("mcdefs.js");
 
-var WORLDPATH = MCPATH + "/saves/World" + ARGV[2]
+var WORLDPATH = MCPATH + "/saves/" + ARGV[2]
 
 var LEVELDATPATH = WORLDPATH + "/level.dat"
 
