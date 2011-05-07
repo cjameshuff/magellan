@@ -73,7 +73,7 @@ var BLOCK_IDS = {
     "RedMushroom":    0x28,
     "GoldBlock":      0x29,
     "IronBlock":      0x2A,
-    "DoubleStep":     0x2B,
+    "DoubleSlab":     0x2B,
     "Slab":           0x2C,
     "Brick":          0x2D,
     "TNT":            0x2E,
