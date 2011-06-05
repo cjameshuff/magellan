@@ -31,6 +31,10 @@ else if(FUEL_IDS[ARGV[3]] != null) {
     itemID = ITEM_IDS["Coal"];
     damage = FUEL_IDS[ARGV[3]];
 }
+else if(SHRUB_IDS[ARGV[3]] != null) {
+    itemID = ITEM_IDS["TallGrass"];
+    damage = SHRUB_IDS[ARGV[3]];
+}
 else {
     itemID = ITEM_IDS[ARGV[3]];
 }

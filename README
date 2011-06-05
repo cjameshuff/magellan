@@ -50,7 +50,7 @@ dumpinv WORLD_NUMBER
 
 
 addinv WORLD_NUMBER INV_ITEM [COUNT]
-    Add item(s) to an open slot in inventory. WORLD_NUMBER INV_ITEM is the name of the item to be added, refer to mcdefs.js for a list. Note that several block types can not be obtained in-game, but are valid inventory items...leaves and the various ores, for example. Some are not.
+    Add item(s) to an open slot in inventory. WORLD_NUMBER INV_ITEM is the name of the item to be added, refer to mcdefs.js for a list. Note that several block types can not be obtained in-game, but are valid inventory items...leaves and the various ores, for example. Some blocks and item types are not valid inventory items, and some inventory items need other data to work...dyes and log blocks use the damage field to store the sub-type, for example.
 
 Example:
 magellan addinv 4 CoalOre 64

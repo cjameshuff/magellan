@@ -64,7 +64,8 @@ var BLOCK_IDS = {
     "PoweredRail":   0x1B,
     "DetectorRail":  0x1C,
     "Web":           0x1E,
-    // 0x1A-0x22 and 0x24 are unused
+    "TallGrass":     0x1F,
+    "DeadShrub":     0x20,
     "Wool":          0x23,
     
     "YellowFlower":   0x25,
@@ -125,7 +126,9 @@ var BLOCK_IDS = {
     "LightStone":      0x59,
     "Portal":          0x5A,
     "GlowingPumpkin":  0x5B,
-    "CakeBlock":       0x5C
+    "CakeBlock":       0x5C,
+    "LockedChest":     0x5F,
+    "Trapdoor":        0x60
 };
 
 
@@ -234,13 +237,14 @@ var ITEM_IDS = {
     "Bed":                 0x163,
     "Repeater":            0x164,
     "Cookie":              0x165,
+    "Map":                 0x166,
     "GoldRecord":          0x8D0,
     "GreenRecord":         0x8D1
 };
-// Note: Dyes require additional data, stored in the "damage" field.
+// Note: Dyes, logs, slabs, fuel, * require additional data, stored in the "damage" field.
 
 var DYE_IDS = {
-    "InkSac":         0x0,
+    "InkSac":          0x0,
     "RoseRed":         0x1,
     "CactusGreen":     0x2,
     "CocoBeans":       0x3,
@@ -259,21 +263,27 @@ var DYE_IDS = {
 };
 
 var SLAB_IDS = {
-    "StoneSlab":   0x0,
-    "SandstoneSlab": 0x1,
-    "WoodSlab":  0x1,
-    "CobblestoneSlab":  0x1
+    "StoneSlab":       0x0,
+    "SandstoneSlab":   0x1,
+    "WoodSlab":        0x2,
+    "CobblestoneSlab": 0x3
 }
 
 var WOOD_IDS = {
-    "Oak":   0x0,
-    "Pine":  0x1,
-    "Birch": 0x2
+    "OakLog":   0x0,
+    "PineLog":  0x1,
+    "BirchLog": 0x2
 }
 
 var FUEL_IDS = {
     "Coal":   0x0,
     "Charcoal":  0x1
+}
+
+var SHRUB_IDS = {
+    "DeadShrubGrass": 0x0, // Identical in appearance to DeadShrub, but acts like tall grass
+    "TallGrass":      0x1,
+    "Fern":           0x2
 }
 
 // Generate reverse lookup table mapping IDs to names
