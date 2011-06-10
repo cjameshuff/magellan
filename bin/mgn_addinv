@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# Add item(s) to inventory
+
+require 'magellan'
+require 'magellan/mcdefs'
+
+include Magellan
+
+if(ARGV.length < 2)
+    puts "mgn_addinv usage:"
+    puts "\tmgn_addinv WORLD ITEM ITEMCOUNT"
+    puts
+    puts "Item and block names are those listed in mcdefs.js"
+    puts "If item count is not specified, 1 is assumed."
+    puts "Item(s) will be placed in first empty inventory position encountered."
+    exit()
+end
+
+damage = 0
+worldName = ARGV[0]
+itemName = ARGV[1].to_sym
+itemCount = (ARGV.length >= 3)? ARGV[2].to_i : 1
+
+itemID = nil
+if(DYE_IDS[itemName] != nil)
+    itemID = ITEM_IDS[:Dye]
+    damage = DYE_IDS[itemName]
+elsif(WOOD_IDS[itemName] != nil)
+    itemID = ITEM_IDS[:Log]
+    damage = WOOD_IDS[itemName]
+elsif(SLAB_IDS[itemName] != nil)
+    itemID = ITEM_IDS[:Slab]
+    damage = SLAB_IDS[itemName]
+elsif(FUEL_IDS[itemName] != nil)
+    itemID = ITEM_IDS[:Coal]
+    damage = FUEL_IDS[itemName]
+elsif(SHRUB_IDS[itemName] != nil)
+    itemID = ITEM_IDS[:TallGrass]
+    damage = SHRUB_IDS[itemName]
+else
+    itemID = ITEM_IDS[itemName]
+end
+
+if(itemID == nil)
+    puts "Unknown item type specified."
+    exit()
+end
+
+level_dat = load_level_dat(worldName)
+freeslots = get_free_inv_slots(level_dat)
+
+inventory = level_dat[:Data][:Player][:Inventory]
+# puts inventory.to_s
+puts "Inventory items: %d" % inventory.value.size()
+
+if(freeslots.length == 0)
+    puts "No empty item slots!"
+    exit()
+end
+
+add_inv_item(level_dat, itemID, damage, itemCount, freeslots[0])
+
+write_level_dat(level_dat, worldName)

@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+# Remove damage from all inventory items, including armor.
+# One parameter, world name.
+
+require 'magellan'
+require 'magellan/mcdefs'
+
+include Magellan
+
+if(ARGV.length < 1)
+    puts "undamage usage:"
+    puts "\tmgn_undamage WORLD"
+    exit()
+end
+
+level_dat = load_level_dat(ARGV[0])
+data = level_dat[:Data]
+player = data[:Player]
+inventory = player[:Inventory]
+
+#puts("Inventory items: %@\n", inventory.size());
+
+inventory.value.each do |item|
+    id = item[:id].value;
+    damage = item[:Damage].value;
+    count = item[:Count].value;
+    slot = item[:Slot].value;
+    # Dyes use the damage field to store the dye subtype, wool uses it to specify the color, and
+    # maps use it to store the map ID.
+    if(damage > 0 && id != ITEM_IDS[:Dye] && id != ITEM_IDS[:Wool] && id != ITEM_IDS[:Map])
+        puts "Repairing %s in slot %d, damage %d\n" % [ITEM_NAMES[id], slot, damage];
+        item[:Damage].value = 0;
+    end
+end
+
+write_level_dat(level_dat, ARGV[0])

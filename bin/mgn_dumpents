@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+# Dump entities in world. One parameter, world name.
+
+require 'magellan'
+require 'magellan/mcdefs'
+
+include Magellan
+
+if(ARGV.length < 1)
+    puts "dumpents usage:"
+    puts "\tmgn_dumpents WORLD"
+    exit()
+end
+
+# Chunk format:
+#    COMPOUND Level {
+#        BYTE_ARRAY Blocks(32768)
+#        BYTE_ARRAY Data(16384)
+#        BYTE_ARRAY SkyLight(16384)
+#        BYTE_ARRAY BlockLight(16384)
+#        BYTE_ARRAY HeightMap(16384)
+#        
+#        TAG_LIST<COMPOUND> Entities
+#        TAG_LIST<COMPOUND> TileEntities
+#        
+#        TAG_LONG LastUpdate
+#        
+#        TAG_INT xPos
+#        TAG_INT zPos
+#        
+#        TAG_BYTE TerrainPopulated
+#    }
+
+def dump_entity(entity)
+    id = entity[:id].value;
+    pos = entity[:Pos].contents;
+    x = pos[0].value;
+    y = pos[1].value;
+    z = pos[2].value;
+    printf("\t%@ at < %@, %@, %@>\n", id, x, y, z);
+end
+
+def dump_tile_entity(entity)
+    id = entity[:id].value;
+    x = entity[:x].value;
+    y = entity[:y].value;
+    z = entity[:z].value;
+#    id = level[:EntityId].value;# for MobSpawner
+    printf("\t%@ at < %@, %@, %@>\n", id, x, y, z);
+end
+
+def DumpChunk(chunk)
+    level = chunk[:Level];
+    lastUpdate = level[:LastUpdate].value;
+    xPos = level[:xPos].value;
+    zPos = level[:zPos].value;
+    terrainPopulated = level[:TerrainPopulated].value;
+    
+    entities = level[:Entities].contents;
+    tileEntities = level[:TileEntities].contents;
+    
+    if(entities.length > 0 || tileEntities.length > 0) {
+        puts "\nChunk: x = #{xPos}, z = #{zPos}"
+        puts "#{entities.length} movable entities, #{tileEntities.length} tile entities"
+        if(entities.length > 0) {
+            printf("tileEntities:\n];
+            for(e in entities)
+                dump_entity(entities[e])
+        }
+        if(tileEntities.length > 0) {
+            printf("tileEntities:\n];
+            for(e in tileEntities)
+                dump_tile_entity(tileEntities[e])
+        }
+    }
+end
+
+
+WORLDPATH = MCPATH + "/saves/" + ARGV[0];
+puts "WORLDPATH = #{WORLDPATH}\n"
+
+world = MC_World.new(WORLDPATH);
+
+chunks = world.get_all_chunk_nbts();
+
+puts "World has #{chunks.length} chunks\n"
+chunks.each {|chunk| dump_chunk(chunk)}
+

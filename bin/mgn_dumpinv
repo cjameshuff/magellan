@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+# Dump inventory. One parameter, world name.
+
+require 'magellan'
+require 'magellan/mcdefs'
+
+include Magellan
+
+if(ARGV.length < 1)
+    puts "\ndumpinv usage:"
+    puts "\tmgn_dumpinv WORLD"
+    exit()
+end
+
+nbt = load_level_dat(ARGV[0])
+puts nbt.to_s
+
+data = nbt[:Data]
+player = data[:Player]
+inventory = player[:Inventory]
+
+puts "Inventory items: %d" % inventory.value.size()
+
+inventory.value.each {|item|
+    id = item[:id].value
+    damage = item[:Damage].value
+    count = item[:Count].value
+    slot = item[:Slot].value
+    puts "%d of %s in slot %d, damage %d" % [count, ITEM_NAMES[id], slot, damage]
+}

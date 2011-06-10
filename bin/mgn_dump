@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+# Dump NBT file. One parameter, path to file.
+
+require 'magellan'
+require 'magellan/mcdefs'
+
+include Magellan
+
+if(ARGV.length < 1)
+    puts "mgn_dump"
+    puts "Usage: mgn_dump NBT_FILE"
+    exit()
+end
+
+puts NBT.load(ARGV[0]).to_s

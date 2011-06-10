@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+# Loads source NBT file, dumps text representation to standard output,
+# and writes to another NBT file.
+# Not useful for much, just a test of NBT loading/writing.
+require 'magellan'
+require 'magellan/mcdefs'
+
+include Magellan
+
+if(ARGV.length < 2)
+    puts "mgn_ditto"
+    puts "Usage: mgn_ditto SRCFILE DSTFILE"
+    exit()
+end
+nbt = NBT.load(ARGV[0])
+puts nbt.to_s
+nbt.write(ARGV[1])
