@@ -255,10 +255,9 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
     uint8_t * decompBfr;
     
     uint32_t chunkTimestamps[1024];
-    std::vector<RegionBlock> chunkBlocks;// chunk blocks in index order
-    
-    std::vector<RegionBlock> chunkBlocksInOrder;// chunk blocks in file order
+    RegionBlock chunkBlocks[1024];// chunk blocks in index order
     std::vector<RegionBlock> freeBlocks;// heap of blocks of unused sectors
+    int endUsedSectors;// index of sector after last used sector
     
     static size_t ChunkIdx(int cx, int cz) {return ((cx & 31) + (cz & 31)*32);}
     
@@ -293,8 +292,8 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
     }
     
     bool ChunkExists(int cx, int cz) const {
-        size_t idx = ChunkIdx(chunkX, chunkZ);
-        return chunkBlocks[idx].start >= 2 && chunkBlocks[idx].size > 0;
+        size_t idx = ChunkIdx(cx, cz);
+        return chunkBlocks[idx].start > 0 && chunkBlocks[idx].size > 0;
     }
     
     // Performs write of buffered chunk
@@ -306,10 +305,10 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
     
     // Get timestamp for currently buffered chunk. Only valid for chunks loaded from file.
     // Timestamp is automatically updated on chunk write.
-    int32_t GetTimestamp() const {chunkTimestamps[ChunkIdx(chunkX, chunkZ)];}
+    int32_t GetTimestamp() const {return chunkTimestamps[ChunkIdx(chunkX, chunkZ)];}
     
     // Get size in bytes of currently buffered chunk.
-    int32_t GetChunkSize() const {chunkBlocks[ChunkIdx(chunkX, chunkZ)].size;}
+    size_t GetChunkSize() const {return chunkBytes;}
     
     // The following functions aren't called directly by the user, but are used by the NBT
     // loading/writing code.

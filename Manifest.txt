@@ -17,6 +17,7 @@ ext/magellan/mc.h
 ext/magellan/misc.h
 ext/magellan/nbt.cpp
 ext/magellan/nbt.h
+ext/magellan/nbtio.cpp
 ext/magellan/nbtio.h
 ext/magellan/nbtrb.cpp
 ext/magellan/nbtrb.h

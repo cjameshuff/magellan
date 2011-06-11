@@ -33,11 +33,11 @@ end
 
 def dump_entity(entity)
     id = entity[:id].value;
-    pos = entity[:Pos].contents;
+    pos = entity[:Pos].value;
     x = pos[0].value;
     y = pos[1].value;
     z = pos[2].value;
-    printf("\t%@ at < %@, %@, %@>\n", id, x, y, z);
+    puts "\t#{id} at < #{x}, #{y}, #{z}>: #{entity.to_s}"
 end
 
 def dump_tile_entity(entity)
@@ -46,43 +46,81 @@ def dump_tile_entity(entity)
     y = entity[:y].value;
     z = entity[:z].value;
 #    id = level[:EntityId].value;# for MobSpawner
-    printf("\t%@ at < %@, %@, %@>\n", id, x, y, z);
+    puts "\t#{id} at < #{x}, #{y}, #{z}>: #{entity.to_s}"
 end
 
-def DumpChunk(chunk)
+def dump_chunk(fin, x, z, chunk)
     level = chunk[:Level];
     lastUpdate = level[:LastUpdate].value;
     xPos = level[:xPos].value;
     zPos = level[:zPos].value;
     terrainPopulated = level[:TerrainPopulated].value;
     
-    entities = level[:Entities].contents;
-    tileEntities = level[:TileEntities].contents;
+    entities = level[:Entities].value;
+    tileEntities = level[:TileEntities].value;
     
-    if(entities.length > 0 || tileEntities.length > 0) {
-        puts "\nChunk: x = #{xPos}, z = #{zPos}"
+    if(entities.size > 0 || tileEntities.size > 0)
+        puts "Region #{fin} chunk #{x}, #{z}: x = #{xPos}, z = #{zPos}"
         puts "#{entities.length} movable entities, #{tileEntities.length} tile entities"
-        if(entities.length > 0) {
-            printf("tileEntities:\n];
-            for(e in entities)
-                dump_entity(entities[e])
-        }
-        if(tileEntities.length > 0) {
-            printf("tileEntities:\n];
-            for(e in tileEntities)
-                dump_tile_entity(tileEntities[e])
-        }
-    }
+        if(entities.size > 0)
+            puts "entities:"
+            entities.each {|ent| dump_entity(ent)}
+        end
+        if(tileEntities.size > 0)
+            puts "tileEntities:"
+            tileEntities.each {|ent| dump_tile_entity(ent)}
+        end
+        true
+    else
+        false
+    end
 end
 
 
-WORLDPATH = MCPATH + "/saves/" + ARGV[0];
-puts "WORLDPATH = #{WORLDPATH}\n"
+testworld = ARGV[0]
 
-world = MC_World.new(WORLDPATH);
+world_dir = "#{MCPATH}/saves/#{testworld}/region"
 
-chunks = world.get_all_chunk_nbts();
+regionFiles = Dir.entries(world_dir)
+if(regionFiles[0] == '.')
+    regionFiles.shift
+end
+if(regionFiles[0] == '..')
+    regionFiles.shift
+end
+puts regionFiles
 
-puts "World has #{chunks.length} chunks\n"
-chunks.each {|chunk| dump_chunk(chunk)}
+
+chunkCoords = []
+(0..31).each {|x|
+    (0..31).each {|z| chunkCoords.push([x, z])}
+}
+
+regionFiles.each {|fin|
+    region = MCRegion.new
+    region.open("#{world_dir}/#{fin}")
+    puts "#{world_dir}/#{fin}:"
+    # region.printstats()
+    chunks = []
+    (0..31).each {|x|
+        (0..31).each {|z|
+            if(region.chunk_exists(x, z))
+                chunks.push([x, z])
+                print ' *'
+            else
+                print ' .'
+            end
+        }
+        print "\n"
+    }
+    
+    puts '#####################################################################'
+    chunks.each {|chnk|
+        chunk = region.read_chunk_nbt(chnk[0], chnk[1])
+        if(dump_chunk(fin, chnk[0], chnk[1], chunk))
+            puts '#####################################################################'
+        end
+    }
+}
+
 

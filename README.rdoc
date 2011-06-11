@@ -9,8 +9,13 @@ NBT (Minecraft data format) file manipulation and map editing tools.
 
 == FEATURES/PROBLEMS:
 
-* Need to re-implement NBT writing, finish Ruby bindings
-* Need to re-implement map loading for beta format
+* Finish Ruby bindings
+* Need to re-implement world loading for beta format. Individual regions can be loaded,
+but only a low-level region-file API exists.
+* Dynamic region loading/unloading for world
+* Tweak allocation to make Ruby garbage collector aware of large allocations
+* Region file optimizations: pack to remove unused sectors (reduces file size for map distribution, etc)
+
 
 == SYNOPSIS:
 

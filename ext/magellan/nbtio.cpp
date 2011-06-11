@@ -44,8 +44,7 @@ bool sortbysize(const RegionBlock & a, const RegionBlock & b) {return a.size < b
 NBT_Region_IO::NBT_Region_IO():
     regFile(NULL),
     fileSize(0),
-    decompBfr(NULL),
-    chunkBlocks(1024)
+    decompBfr(NULL)
 {
 }
 
@@ -56,6 +55,7 @@ int NBT_Region_IO::Open(const std::string & fpath)
         fclose(regFile);
     
     fileSize = 0;
+    endUsedSectors = 0;
     regFile = fopen(fpath.c_str(), "r+b");
     if(!regFile) {
         std::cerr << "Could not open \"" << fpath << "\"" << std::endl;
@@ -84,11 +84,11 @@ void NBT_Region_IO::PrintStats(std::ostream & ostrm)
     int totalU = 0;
     // Note: chunk blocks may be consecutive, with no free space between them
     int ctr = 0;
-    for(j = chunkBlocks.begin(); j != chunkBlocks.end(); ++j) {
-        totalU += j->size;
-        smallestU = min(smallestU, j->size);
-        largestU = max(largestU, j->size);
-        ostrm << ctr++ << ": " << j->start << ", " << j->size << endl;
+    for(int j = 0; j < 1024; ++j) {
+        totalU += chunkBlocks[j].size;
+        smallestU = min(smallestU, chunkBlocks[j].size);
+        largestU = max(largestU, chunkBlocks[j].size);
+        // ostrm << ctr++ << ": " << j->start << ", " << j->size << endl;
     }
     for(j = freeBlocks.begin(); j != freeBlocks.end(); ++j) {
         totalF += j->size;
@@ -97,14 +97,11 @@ void NBT_Region_IO::PrintStats(std::ostream & ostrm)
     }
     
     ostrm << endl;
-    ostrm << "Used blocks: " << chunkBlocks.size() << endl;
-    if(chunkBlocks.size() > 0)
-    {
-        ostrm << "Smallest used block (sectors): " << smallestU << endl;
-        ostrm << "Largest used block (sectors): " << largestU << endl;
-        ostrm << "Mean used block size (sectors): " << fixed << setprecision(2) << (double)totalU/chunkBlocks.size() << endl;
-        ostrm << "All used blocks (sectors): " << totalU << endl;
-    }
+    ostrm << "Used blocks: 1024" << endl;
+    ostrm << "Smallest used block (sectors): " << smallestU << endl;
+    ostrm << "Largest used block (sectors): " << largestU << endl;
+    ostrm << "Mean used block size (sectors): " << fixed << setprecision(2) << (double)totalU/1024 << endl;
+    ostrm << "All used blocks (sectors): " << totalU << endl;
     ostrm << endl;
     ostrm << "Free blocks: " << freeBlocks.size() << endl;
     if(freeBlocks.size() > 0)
@@ -134,13 +131,18 @@ int NBT_Region_IO::ReadRegionTOC()
     fseek(regFile, 0, SEEK_SET);
     uint8_t buf[4096];
     fread(buf, 4096, 1, regFile);
+    
+    int empty = 0;
     for(int j = 0, i = 0; j < 1024; ++j, i += 4) {
         // Sectors are 4096 bytes.
         // size is size of chunk in sectors
         // start is offset to start of chunk from start of file, in sectors.
         chunkBlocks[j].start = (buf[i] << 16) | (buf[i + 1] << 8) | buf[i + 2];
         chunkBlocks[j].size = buf[i + 3];
+        if(chunkBlocks[j].start == 0)
+            ++empty;
     }
+    cout << empty << " chunks are empty" << endl;
     fread(buf, 4096, 1, regFile);
     for(int j = 0; j < 1024; ++j)
         chunkTimestamps[j] = (buf[j] << 24) | (buf[j + 1] << 16) | (buf[j + 2] << 8) | buf[j + 3];
@@ -150,16 +152,15 @@ int NBT_Region_IO::ReadRegionTOC()
     // one at the start, one between each pair of used blocks. There may be free
     // sectors following the last used block, but that block is effectively of
     // unlimited size, so is ignored unless all other blocks are too small.
-    size_t numSectors = (fileSize - 8192)/4096;
     
     // first, build list of used blocks, sorted by size.
-    chunkBlocksInOrder = chunkBlocks;
+    /*std::vector<RegionBlock> chunkBlocksInOrder = chunkBlocks;
     sort(chunkBlocksInOrder.begin(), chunkBlocksInOrder.end(), sortbystart);
     
     freeBlocks.clear();
     make_heap(freeBlocks.begin(), freeBlocks.end(), sortbysize);
     // pop_heap(freeBlocks.begin(), freeBlocks.end()); freeBlocks.pop_back()
-    // chunkBlocksInOrder.push_back(); push_heap(freeBlocks.begin(), freeBlocks.end())
+    // freeBlocks.push_back(); push_heap(freeBlocks.begin(), freeBlocks.end())
     // sort_heap(freeBlocks.begin(), freeBlocks.end())
     vector<RegionBlock>::iterator j;
     int crsr = 2;
@@ -177,6 +178,8 @@ int NBT_Region_IO::ReadRegionTOC()
         crsr = j->start + j->size;
     }
     
+    endUsedSectors = chunkBlocksInOrder.back().start + chunkBlocksInOrder.back().size;*/
+    
     return 0;
 }
 
@@ -188,9 +191,34 @@ void NBT_Region_IO::UpdateTOC(size_t chunkIdx, const RegionBlock & chunkBlock)
     chunkBlocks[chunkIdx] = chunkBlock;
     
     // Old block of sectors used by chunk is now free for reuse
-    // TODO: check for contiguous free blocks and combine them
+    // Check for contiguous free blocks and combine them
     freeBlocks.push_back(oldBlock);
-    push_heap(freeBlocks.begin(), freeBlocks.end(), sortbysize);
+    for(size_t j = 0; j < freeBlocks.size(); ++j)
+    {
+        if((freeBlocks[j].start + freeBlocks[j].size) == oldBlock.start)
+        {
+            freeBlocks[j].size += oldBlock.size;
+            make_heap(freeBlocks.begin(), freeBlocks.end(), sortbysize);
+            oldBlock.start = 0;
+            break;
+        }
+        else if((oldBlock.start + oldBlock.size) == freeBlocks[j].start)
+        {
+            freeBlocks[j].start = oldBlock.start;
+            make_heap(freeBlocks.begin(), freeBlocks.end(), sortbysize);
+            oldBlock.start = 0;
+            break;
+        }
+    }
+    if(oldBlock.start)// did not merge with existing block, insert
+        push_heap(freeBlocks.begin(), freeBlocks.end(), sortbysize);
+    
+    // Recompute endUsedSectors
+    endUsedSectors = 0;
+    for(int j = 0; j < 1024; ++j) {
+        if((chunkBlocks[j].start + chunkBlocks[j].size) > endUsedSectors)
+            endUsedSectors = chunkBlocks[j].start + chunkBlocks[j].size;
+    }
     
     buf[0] = ((chunkBlock.start >> 16) & 0xFF);
     buf[1] = ((chunkBlock.start >> 8) & 0xFF);
@@ -288,7 +316,7 @@ int NBT_Region_IO::WriteChunk(int cx, int cz)
     if(freeBlock.start == 0)
     {
         // Couldn't allocate space from free blocks, allocate new space
-        freeBlock.start = chunkBlocksInOrder.back().start + chunkBlocksInOrder.back().size;
+        freeBlock.start = endUsedSectors;
         freeBlock.size = compChunkSectors;
     }
     
@@ -309,6 +337,10 @@ int NBT_Region_IO::WriteChunk(int cx, int cz)
     fwrite(compBfr, compChunkBytes, 1, regFile);
     
     UpdateTOC(ChunkIdx(chunkX, chunkZ), freeBlock);
+    
+    rwPtr = 0;
+    chunkBytes = 0;
+    
     return 0;
 }
 
