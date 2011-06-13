@@ -43,6 +43,7 @@ class NBT
     def self.new_string(name, val = '')
         NBT.new(name, NBT::TAG_STRING, val)
     end
+    # TODO: allow lists of primitive types in addition to lists of NBTs
     def self.new_list(name, vals, entry_type)
         NBT.new(name, NBT::TAG_LIST, vals, entry_type)
     end
@@ -89,7 +90,7 @@ class NBT
     
     def insert(val)
         if(@type == NBT::TAG_COMPOUND)
-            @value[val.name] = val
+            @value[val.name.to_sym] = val
         end
     end
 end # class NBT
