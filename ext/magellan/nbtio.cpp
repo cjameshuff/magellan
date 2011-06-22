@@ -44,6 +44,7 @@ bool sortbysize(const RegionBlock & a, const RegionBlock & b) {return a.size < b
 NBT_Region_IO::NBT_Region_IO():
     regFile(NULL),
     fileSize(0),
+    chunkX(-1), chunkZ(-1),
     decompBfr(NULL)
 {
 }
@@ -151,10 +152,11 @@ int NBT_Region_IO::ReadRegionTOC()
     // There will be at most 1024 used blocks, and at most 1024 free blocks...
     // one at the start, one between each pair of used blocks. There may be free
     // sectors following the last used block, but that block is effectively of
-    // unlimited size, so is ignored unless all other blocks are too small.
+    // unlimited size and always exists, so is only considered when all others
+    // are too small.
     
     // first, build list of used blocks, sorted by size.
-    /*std::vector<RegionBlock> chunkBlocksInOrder = chunkBlocks;
+    std::vector<RegionBlock> chunkBlocksInOrder(chunkBlocks, chunkBlocks + 1024);
     sort(chunkBlocksInOrder.begin(), chunkBlocksInOrder.end(), sortbystart);
     
     freeBlocks.clear();
@@ -178,7 +180,7 @@ int NBT_Region_IO::ReadRegionTOC()
         crsr = j->start + j->size;
     }
     
-    endUsedSectors = chunkBlocksInOrder.back().start + chunkBlocksInOrder.back().size;*/
+    endUsedSectors = chunkBlocksInOrder.back().start + chunkBlocksInOrder.back().size;
     
     return 0;
 }

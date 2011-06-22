@@ -68,6 +68,7 @@ MC_World world;
 void WriteImage(SimpleImage & outputImage, const string & path);
 
 VALUE class_MCRegion;
+VALUE class_MCWorld;
 
 inline NBT_Region_IO * GetMCRegion(VALUE value) {
     NBT_Region_IO * val; Data_Get_Struct(value, NBT_Region_IO, val);
@@ -87,8 +88,8 @@ static VALUE MCRegion_init(int argc, VALUE *argv, VALUE self)
 }
 
 static VALUE MCRegion_open(VALUE self, VALUE rbfpath) {
-    GetMCRegion(self)->Open(StringValueCStr(rbfpath));
-    return self;
+    int err = GetMCRegion(self)->Open(StringValueCStr(rbfpath));
+    return INT2FIX(err);
 }
 
 // TODO: compute and return stats, instead of printing to cout
@@ -126,6 +127,14 @@ static VALUE MCRegion_write_chunk_nbt(VALUE self, VALUE rb_x, VALUE rb_z, VALUE 
 }
 
 
+static VALUE MCWorld_compute_lights(VALUE self) {
+    return Qnil;
+}
+static VALUE MCWorld_compute_heights(VALUE self) {
+    return Qnil;
+}
+
+
 extern "C" void Init_magellan()
 {
     VALUE mMGLN = rb_define_module("Magellan");
@@ -143,6 +152,10 @@ extern "C" void Init_magellan()
     rb_define_method(class_MCRegion, "chunk_exists", RUBY_METHOD_FUNC(MCRegion_chunk_exists), 2);
     rb_define_method(class_MCRegion, "read_chunk_nbt", RUBY_METHOD_FUNC(MCRegion_read_chunk_nbt), 2);
     rb_define_method(class_MCRegion, "write_chunk_nbt", RUBY_METHOD_FUNC(MCRegion_write_chunk_nbt), 2);
+    
+    class_MCWorld = rb_define_class("MCWorld", rb_cObject);
+    rb_define_method(class_MCWorld, "compute_lights_intern", RUBY_METHOD_FUNC(MCWorld_compute_lights), 0);
+    rb_define_method(class_MCWorld, "compute_heights_intern", RUBY_METHOD_FUNC(MCWorld_compute_heights), 0);
 }
 // int main(int argc, char * argv[])
 // {

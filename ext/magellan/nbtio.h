@@ -249,7 +249,7 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
     FILE * regFile;
     long fileSize;
     
-    int chunkX, chunkZ;
+    int chunkX, chunkZ;// coordinates of loaded chunk
     size_t chunkBytes;
     size_t rwPtr;
     uint8_t * decompBfr;
@@ -295,6 +295,8 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
         size_t idx = ChunkIdx(cx, cz);
         return chunkBlocks[idx].start > 0 && chunkBlocks[idx].size > 0;
     }
+    
+    bool ChunkLoaded(int cx, int cz) const {return chunkX == cx && chunkZ == cz;}
     
     // Performs write of buffered chunk
     int WriteChunk(int cx, int cz);

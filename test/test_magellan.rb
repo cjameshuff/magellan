@@ -21,12 +21,8 @@ testworld = "TestWorld"
 world_dir = "#{MCPATH}/saves/#{testworld}/region"
 
 regionFiles = Dir.entries(world_dir)
-if(regionFiles[0] == '.')
-    regionFiles.shift
-end
-if(regionFiles[0] == '..')
-    regionFiles.shift
-end
+regionFiles.delete('.')
+regionFiles.delete('..')
 puts regionFiles
 
 #regionFiles.each {|fin|
