@@ -25,7 +25,8 @@ ext/magellan/pngimage.h
 ext/magellan/simpleimage.h
 lib/magellan.rb
 lib/magellan/magellan.bundle
-lib/magellan/maptools.rb
+lib/magellan/mcworld.rb
+lib/magellan/mcentity.rb
 lib/magellan/mcdefs.rb
 lib/magellan/nbt.rb
 test/test_magellan.rb
