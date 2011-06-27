@@ -1,4 +1,3 @@
-require 'magellan/magellan'
 
 module Magellan
 # http://www.minecraftwiki.net/wiki/Data_values
@@ -14,125 +13,121 @@ module Magellan
 
 # A map from integers < 72 to base36 strings, used for putting chunks in the
 # right directories or for scanning through a world's chunk files.
+# Only relevant for old Alpha maps
 CHUNK_DIRS = [
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h",# 0-17
     "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",# 18-35
     "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1a", "1b", "1c", "1d", "1e", "1f", "1g", "1h",# 36-53
     "1i", "1j", "1k", "1l", "1m", "1n", "1o", "1p", "1q", "1r", "1s", "1t", "1u", "1v", "1w", "1x", "1y", "1z" # 54-72
-];
-
-ARMOR_SLOTS = {
-    boots: 100,
-    legs: 101,
-    torso: 102,
-    helmet: 103,
-}
+]
 
 # Item IDs referenced by item name
 # TODO:
 # Possibly store more block/item information in table. Whether an item is
 # inventory-safe, etc.
-BLOCK_NAMES = {}
+BLOCKS_BY_ID = {}
+BLOCKS_BY_NAME = {}
 
-BLOCK_IDS = {
-    Air:           0x00,
-    Stone:         0x01,
-    Grass:         0x02,
-    Dirt:          0x03,
-    Cobblestone:   0x04,
-    Wood:          0x05,
-    Sapling:       0x06,
-    Bedrock:       0x07,
-    Water:         0x08,
-    WaterPooled:   0x09,
-    Lava:          0x0A,
-    LavaPooled:    0x0B,
-    Sand:          0x0C,
-    Gravel:        0x0D,
-    GoldOre:       0x0E,
-    IronOre:       0x0F,
+
+BLOCK_TYPES = [
+    {name: 'Air',          id: 0x00, opacity: 0},
+    {name: 'Stone',        id: 0x01, opacity: 15},
+    {name: 'Grass',        id: 0x02, opacity: 15},
+    {name: 'Dirt',         id: 0x03, opacity: 15},
+    {name: 'Cobblestone',  id: 0x04, opacity: 15},
+    {name: 'Wood',         id: 0x05, opacity: 15},
+    {name: 'Sapling',      id: 0x06, opacity: 0},
+    {name: 'Bedrock',      id: 0x07, opacity: 15},
+    {name: 'Water',        id: 0x08, opacity: 1},
+    {name: 'WaterPooled',  id: 0x09, opacity: 1},
+    {name: 'Lava',         id: 0x0A, opacity: 15},
+    {name: 'LavaPooled',   id: 0x0B, opacity: 15},
+    {name: 'Sand',         id: 0x0C, opacity: 15},
+    {name: 'Gravel',       id: 0x0D, opacity: 15},
+    {name: 'GoldOre',      id: 0x0E, opacity: 15},
+    {name: 'IronOre',      id: 0x0F, opacity: 15},
     
-    CoalOre:       0x10,
-    Log:           0x11,
-    Leaves:        0x12,
-    Sponge:        0x13,
-    Glass:         0x14,
+    {name: 'CoalOre',      id: 0x10, opacity: 15},
+    {name: 'Log',          id: 0x11, opacity: 15},
+    {name: 'Leaves',       id: 0x12, opacity: 1},
+    {name: 'Sponge',       id: 0x13, opacity: 15},
+    {name: 'Glass',        id: 0x14, opacity: 0},
     
-    LapisOre:      0x15,
-    LapisBlock:    0x16,
-    Dispenser:     0x17,
-    Sandstone:     0x18,
-    NoteBlock:     0x19,
-    BedBlock:      0x1A,
-    PoweredRail:   0x1B,
-    DetectorRail:  0x1C,
-    Web:           0x1E,
-    TallGrass:     0x1F,
-    DeadShrub:     0x20,
-    Wool:          0x23,
+    {name: 'LapisOre',     id: 0x15, opacity: 15},
+    {name: 'LapisBlock',   id: 0x16, opacity: 15},
+    {name: 'Dispenser',    id: 0x17, opacity: 15},
+    {name: 'Sandstone',    id: 0x18, opacity: 15},
+    {name: 'NoteBlock',    id: 0x19, opacity: 15},
+    {name: 'BedBlock',     id: 0x1A, opacity: 15},
+    {name: 'PoweredRail',  id: 0x1B, opacity: 15},
+    {name: 'DetectorRail', id: 0x1C, opacity: 15},
+    {name: 'Web',          id: 0x1E, opacity: 0},
+    {name: 'TallGrass',    id: 0x1F, opacity: 0},
+    {name: 'DeadShrub',    id: 0x20, opacity: 0},
+    {name: 'Wool',         id: 0x23, opacity: 15},
     
-    YellowFlower:   0x25,
-    RedRose:        0x26,
-    BrownMushroom:  0x27,
-    RedMushroom:    0x28,
-    GoldBlock:      0x29,
-    IronBlock:      0x2A,
-    DoubleSlab:     0x2B,
-    Slab:           0x2C,
-    Brick:          0x2D,
-    TNT:            0x2E,
-    BookCase:       0x2F,
+    {name: 'YellowFlower',  id: 0x25, opacity: 15},
+    {name: 'RedRose',       id: 0x26, opacity: 15},
+    {name: 'BrownMushroom', id: 0x27, opacity: 15},
+    {name: 'RedMushroom',   id: 0x28, opacity: 15},
+    {name: 'GoldBlock',     id: 0x29, opacity: 15},
+    {name: 'IronBlock',     id: 0x2A, opacity: 15},
+    {name: 'DoubleSlab',    id: 0x2B, opacity: 15},
+    {name: 'Slab',          id: 0x2C, opacity: 15},
+    {name: 'Brick',         id: 0x2D, opacity: 15},
+    {name: 'TNT',           id: 0x2E, opacity: 15},
+    {name: 'BookCase',      id: 0x2F, opacity: 15},
     
-    MossyCobblestone:  0x30,
-    Obsidian:          0x31,
-    Torch:             0x32,
-    Fire:              0x33,
-    MobSpawner:        0x34,
-    WoodStairs:        0x35,
-    Chest:             0x36,
-    RedstoneWire:      0x37,
-    DiamondOre:        0x38,
-    DiamondBlock:      0x39,
-    Workbench:         0x3A,
-    Crops:             0x3B,
-    Soil:              0x3C,
-    Furnace:           0x3D,
-    BurningFurnace:    0x3E,
-    SignPost:          0x3F,# sign placed on a post
+    {name: 'MossyCobblestone', id: 0x30, opacity: 15},
+    {name: 'Obsidian',         id: 0x31, opacity: 15},
+    {name: 'Torch',            id: 0x32, opacity: 0},
+    {name: 'Fire',             id: 0x33, opacity: 15},
+    {name: 'MobSpawner',       id: 0x34, opacity: 15},
+    {name: 'WoodStairs',       id: 0x35, opacity: 15},
+    {name: 'Chest',            id: 0x36, opacity: 15},
+    {name: 'RedstoneWire',     id: 0x37, opacity: 15},
+    {name: 'DiamondOre',       id: 0x38, opacity: 15},
+    {name: 'DiamondBlock',     id: 0x39, opacity: 15},
+    {name: 'Workbench',        id: 0x3A, opacity: 15},
+    {name: 'Crops',            id: 0x3B, opacity: 15},
+    {name: 'Soil',             id: 0x3C, opacity: 15},
+    {name: 'Furnace',          id: 0x3D, opacity: 15},
+    {name: 'BurningFurnace',   id: 0x3E, opacity: 15},
+    {name: 'SignPost',         id: 0x3F, opacity: 15},# sign placed on a post
     
-    WoodDoorBlock:       0x40,
-    Ladder:              0x41,
-    Rail:                0x42,
-    CobblestoneStairs:   0x43,
-    WallSign:            0x44,# sign hung on a wall
-    Lever:               0x45,
-    StonePressurePlate:  0x46,
-    IronDoorBlock:       0x47,
-    WoodPressurePlate:   0x48,
-    RedstoneOre:         0x49,
-    GlowingRedstoneOre:  0x4A,
-    RedstoneTorchOff:    0x4B,
-    RedstoneTorchOn:     0x4C,
-    StoneButton:         0x4D,
-    Snow:                0x4E,
-    Ice:                 0x4F,
+    {name: 'WoodDoorBlock',      id: 0x40, opacity: 15},
+    {name: 'Ladder',             id: 0x41, opacity: 15},
+    {name: 'Rail',               id: 0x42, opacity: 15},
+    {name: 'CobblestoneStairs',  id: 0x43, opacity: 15},
+    {name: 'WallSign',           id: 0x44, opacity: 0},# sign hung on a wall
+    {name: 'Lever',              id: 0x45, opacity: 0},
+    {name: 'StonePressurePlate', id: 0x46, opacity: 15},
+    {name: 'IronDoorBlock',      id: 0x47, opacity: 15},
+    {name: 'WoodPressurePlate',  id: 0x48, opacity: 15},
+    {name: 'RedstoneOre',        id: 0x49, opacity: 15},
+    {name: 'GlowingRedstoneOre', id: 0x4A, opacity: 15},
+    {name: 'RedstoneTorchOff',   id: 0x4B, opacity: 15},
+    {name: 'RedstoneTorchOn',    id: 0x4C, opacity: 15},
+    {name: 'StoneButton',        id: 0x4D, opacity: 0},
+    {name: 'Snow',               id: 0x4E, opacity: 15},
+    {name: 'Ice',                id: 0x4F, opacity: 15},
     
-    SnowBlock:       0x50,
-    Cactus:          0x51,
-    Clay:            0x52,
-    SugarCaneBlock:  0x53,
-    Jukebox:         0x54,
-    Fence:           0x55,
-    Pumpkin:         0x56,
-    Netherstone:     0x57,
-    SlowSand:        0x58,
-    LightStone:      0x59,
-    Portal:          0x5A,
-    GlowingPumpkin:  0x5B,
-    CakeBlock:       0x5C,
-    LockedChest:     0x5F,
-    Trapdoor:        0x60
-};
+    {name: 'SnowBlock',      id: 0x50, opacity: 15},
+    {name: 'Cactus',         id: 0x51, opacity: 15},
+    {name: 'Clay',           id: 0x52, opacity: 15},
+    {name: 'SugarCaneBlock', id: 0x53, opacity: 0},
+    {name: 'Jukebox',        id: 0x54, opacity: 15},
+    {name: 'Fence',          id: 0x55, opacity: 0},
+    {name: 'Pumpkin',        id: 0x56, opacity: 15},
+    {name: 'Netherstone',    id: 0x57, opacity: 15},
+    {name: 'SlowSand',       id: 0x58, opacity: 15},
+    {name: 'LightStone',     id: 0x59, opacity: 15},
+    {name: 'Portal',         id: 0x5A, opacity: 0},
+    {name: 'GlowingPumpkin', id: 0x5B, opacity: 15},
+    {name: 'CakeBlock',      id: 0x5C, opacity: 15},
+    {name: 'LockedChest',    id: 0x5F, opacity: 15},
+    {name: 'Trapdoor',       id: 0x60, opacity: 0}
+]
 
 
 ITEM_NAMES = {}
@@ -243,7 +238,23 @@ ITEM_IDS = {
     Map:                 0x166,
     GoldRecord:          0x8D0,
     GreenRecord:         0x8D1
-};
+}
+
+# Generate reverse lookup table mapping block IDs to block names
+BLOCK_TYPES.each {|block|
+    BLOCKS_BY_ID[block[:id]] = block
+    BLOCKS_BY_NAME[block[:name]] = block
+}
+
+# Blocks are items as well
+# Add block names to table of item IDs
+# TODO: rather than mix the tables like this, add logic to the lookup functions
+BLOCKS_BY_NAME.each {|name, id| ITEM_IDS[name] = id}
+
+# Generate reverse lookup table mapping item IDs to item names
+ITEM_IDS.each {|name, id| ITEM_NAMES[id] = name.to_s}
+
+
 # Note: Dyes, logs, slabs, fuel, * require additional data, stored in the "damage" field.
 
 DYE_IDS = {
@@ -263,7 +274,7 @@ DYE_IDS = {
     MagentaDye:      0xD,
     Orange:          0xE,
     BoneMeal:        0xF
-};
+}
 
 SLAB_IDS = {
     StoneSlab:       0x0,
@@ -289,194 +300,24 @@ SHRUB_IDS = {
     Fern:           0x2
 }
 
-# Generate reverse lookup table mapping block IDs to block names
-BLOCK_IDS.each {|name, id| BLOCK_NAMES[id] = name.to_s}
-
-# Blocks are items as well
-# Add block names to table of item IDs
-# TODO: rather than mix the tables like this, add logic to the lookup functions
-BLOCK_IDS.each {|name, id| ITEM_IDS[name] = id}
-
-# Generate reverse lookup table mapping item IDs to item names
-ITEM_IDS.each {|name, id| ITEM_NAMES[id] = name.to_s}
+ARMOR_SLOTS = {
+    boots: 100,
+    legs: 101,
+    torso: 102,
+    helmet: 103,
+}
 
 
 def load_level_dat(worldName)
-    NBT.load(MCPATH + "/saves/" + worldName + "/level.dat");
+    NBT.load(MCPATH + "/saves/" + worldName + "/level.dat")
 end
 
 def write_level_dat(level_dat, worldName)
     # Make backup of old version and write new level.dat
-    level_dat_path = MCPATH + "/saves/" + worldName + "/level.dat";
-    File.rename(level_dat_path, level_dat_path + ".bkp");
-    level_dat.write(level_dat_path);
+    level_dat_path = MCPATH + "/saves/" + worldName + "/level.dat"
+    File.rename(level_dat_path, level_dat_path + ".bkp")
+    level_dat.write(level_dat_path)
 end
-
-class MC_Player
-    def initialize(opts = {})
-        if(opts[:nbt] != nil)
-            @player_nbt = opts[:nbt]
-        else
-            @player_nbt = NBT.new_compound("Player")
-            @player_nbt.insert(NBT.new_int("Score", 0))
-            @player_nbt.insert(NBT.new_int("Dimension", opts.fetch(:dim, 0)))
-            @player_nbt.insert(NBT.new_byte("OnGround", opts.fetch(:on_ground, 1)))
-            @player_nbt.insert(NBT.new_list("Pos", [
-                NBT.new_double("", 0.0),
-                NBT.new_double("", 0.0),
-                NBT.new_double("", 0.0)
-            ], NBT::TAG_DOUBLE))
-            @player_nbt.insert(NBT.new_list("Motion", [
-                NBT.new_double("", 0.0),
-                NBT.new_double("", 0.0),
-                NBT.new_double("", 0.0)
-            ], NBT::TAG_DOUBLE))
-            @player_nbt.insert(NBT.new_list("Rotation", [
-                NBT.new_float("", 0.0),
-                NBT.new_float("", 0.0)
-            ], NBT::TAG_FLOAT))
-            @player_nbt.insert(NBT.new_int("SpawnX", 0))
-            @player_nbt.insert(NBT.new_int("SpawnY", 0))
-            @player_nbt.insert(NBT.new_int("SpawnZ", 0))
-            @player_nbt.insert(NBT.new_short("AttackTime", 0))
-            @player_nbt.insert(NBT.new_short("HurtTime", 0))
-            @player_nbt.insert(NBT.new_short("DeathTime", 0))
-            @player_nbt.insert(NBT.new_short("Fire", -20))
-            @player_nbt.insert(NBT.new_short("Health", 19))
-            @player_nbt.insert(NBT.new_short("Air", 300))
-            @player_nbt.insert(NBT.new_float("FallDistance", 0.0))
-            @player_nbt.insert(NBT.new_byte("Sleeping", 0))
-            @player_nbt.insert(NBT.new_short("SleepTimer", 0))
-            @player_nbt.insert(NBT.new_list("Inventory", [], NBT::TAG_COMPOUND))
-        end
-    end # initialize()
-    
-    def score=(val)
-        @player_nbt[:Score] = val
-    end
-    
-    def score()
-        @player_nbt[:Score].value
-    end
-    
-    def dimension=(val)
-        @player_nbt[:Dimension] = val
-    end
-    
-    def dimension()
-        @player_nbt[:Dimension].value
-    end
-    
-    def onground=(val)
-        @player_nbt[:OnGround] = val
-    end
-    
-    def onground()
-        @player_nbt[:OnGround].value
-    end
-    
-    def pos=(pt)
-        @player_nbt[:Pos][0] = pt[0]
-        @player_nbt[:Pos][1] = pt[1]
-        @player_nbt[:Pos][2] = pt[2]
-    end
-    
-    def pos()
-        [@player_nbt[:Pos][0].value, @player_nbt[:Pos][1].value, @player_nbt[:Pos][2].value]
-    end
-    
-    def motion=(vel)
-        @player_nbt[:Motion][0] = vel[0]
-        @player_nbt[:Motion][1] = vel[1]
-        @player_nbt[:Motion][2] = vel[2]
-    end
-    
-    def motion()
-        [@player_nbt[:Motion][0].value, @player_nbt[:Motion][1].value, @player_nbt[:Motion][2].value]
-    end
-    
-    def rotation=(pt)
-        @player_nbt[:Rotation][0] = pt[0]
-        @player_nbt[:Rotation][1] = pt[1]
-    end
-    
-    def rotation()
-        [@player_nbt[:Rotation][0].value, @player_nbt[:Rotation][1].value]
-    end
-    
-    def spawn=(pt)
-        @player_nbt[:SpawnX] = pt[0]
-        @player_nbt[:SpawnY] = pt[1]
-        @player_nbt[:SpawnZ] = pt[2]
-    end
-    
-    def spawn()
-        [@player_nbt[:SpawnX].value, @player_nbt[:SpawnY].value, @player_nbt[:SpawnZ].value]
-    end
-            # @player_nbt.insert(NBT.new_short("AttackTime", 0))
-            # @player_nbt.insert(NBT.new_short("HurtTime", 0))
-            # @player_nbt.insert(NBT.new_short("DeathTime", 0))
-            # @player_nbt.insert(NBT.new_short("Fire", -20))
-    
-    def health=(h)
-        @player_nbt[:Health] = h
-    end
-    
-    def health()
-        @player_nbt[:Health].value
-    end
-            # @player_nbt.insert(NBT.new_short("Air", 300))
-            # @player_nbt.insert(NBT.new_float("FallDistance", 0.0))
-    
-    def sleeping=(s)
-        @player_nbt[:Sleeping] = s
-    end
-    
-    def sleeping()
-        @player_nbt[:Sleeping].value
-    end
-    
-    def sleep_timer=(s)
-        @player_nbt[:SleepTimer] = s
-    end
-    
-    def sleep_timer()
-        @player_nbt[:SleepTimer].value
-    end
-    
-    def get_nbt()
-        @player_nbt
-    end
-    
-    def inventory()
-        @player_nbt[:Inventory]
-    end
-    
-    def get_free_inv_slots(level_dat)
-        # Empty slots have no entries and entries can have any order, so we start with all
-        # slots and then remove the used ones.
-        invslots = (0..35).to_a
-        inventory.value.each {|item|
-            id = item[:id].value
-            slot = item[:Slot].value
-            count = item[:Count].value
-            damage = item[:Damage].value
-            #puts "%d of %s in slot %d, damage %d" % [count, ITEM_NAMES[id], slot, damage]
-            invslots.delete(slot);
-        }
-        invslots
-    end
-    
-    def add_inv_item(level_dat, itemID, damage, count, slot)
-        puts "Adding %d %s to slot %d\n" % [count, ITEM_NAMES[itemID], slot]
-        item = NBT.new_compound("");
-        item.insert(NBT.new_short("id", itemID))
-        item.insert(NBT.new_short("Damage", damage))
-        item.insert(NBT.new_byte("Count", count))
-        item.insert(NBT.new_byte("Slot", slot))
-        inventory.value.push(item)
-    end
-end # class MC_Player
 
 def get_free_inv_slots(level_dat)
     # Empty slots have no entries, so we mark all the filled ones and then return
@@ -491,10 +332,10 @@ def get_free_inv_slots(level_dat)
         count = item[:Count].value
         damage = item[:Damage].value
         puts "%d of %s in slot %d, damage %d" % [count, ITEM_NAMES[id], slot, damage]
-        invslots[slot] = false;
+        invslots[slot] = false
     }
     
-    freeslots = [];
+    freeslots = []
     (0..35).each {|i|
         if(invslots[i])
             freeslots.push(i)
@@ -507,136 +348,12 @@ end
 def add_inv_item(level_dat, itemID, damage, count, slot)
     inventory = level_dat[:Data][:Player][:Inventory]
     puts "Adding %d %s to slot %d\n" % [count, ITEM_NAMES[itemID], slot]
-    item = NBT.new_compound("");
+    item = NBT.new_compound("")
     item.insert(NBT.new_short("id", itemID))
     item.insert(NBT.new_short("Damage", damage))
     item.insert(NBT.new_byte("Count", count))
     item.insert(NBT.new_byte("Slot", slot))
     inventory.value.push(item)
 end
-
-class MC_LevelDat
-    attr_accessor :player
-    
-    def initialize(opts = {})
-        if(opts[:world_dir] != nil)
-            load_world(opts[:world_dir]})
-            @level_dat_nbt = NBT.load("#{opts[:world_dir]}/level.dat");
-            @player = MC_Player.new({nbt: @level_dat_nbt[:Player]})
-        elsif(opts[:world_name] != nil)
-            @level_dat_nbt = NBT.load("#{MCPATH}/saves/#{opts[:world_name]}/level.dat");
-            @player = MC_Player.new({nbt: @level_dat_nbt[:Player]})
-        elsif(opts[:nbt] != nil)
-            # initialize from existing NBT
-            @level_dat_nbt = opts[:nbt]
-            @player = MC_Player.new({nbt: @level_dat_nbt[:Player]})
-        else
-            # Create new level.dat NBT structure
-            @level_dat_nbt = NBT.new_compound("")
-            @level_dat_nbt.insert(NBT.new_string("LevelName", "Unnamed World"))
-            @level_dat_nbt.insert(NBT.new_long("SizeOnDisk", 0))
-            @level_dat_nbt.insert(NBT.new_long("LastPlayed", 0))
-            @level_dat_nbt.insert(NBT.new_long("Time", 0))
-            @level_dat_nbt.insert(NBT.new_long("RandomSeed", 0))
-            @level_dat_nbt.insert(NBT.new_byte("thundering", 0))
-            @level_dat_nbt.insert(NBT.new_int("thunderTime", 0))
-            @level_dat_nbt.insert(NBT.new_byte("raining", 0))
-            @level_dat_nbt.insert(NBT.new_int("rainTime", 0))
-            @level_dat_nbt.insert(NBT.new_int("version", 19132))# 1.6.6
-            @level_dat_nbt.insert(NBT.new_int("SpawnX", 0))
-            @level_dat_nbt.insert(NBT.new_int("SpawnY", 0))
-            @level_dat_nbt.insert(NBT.new_int("SpawnZ", 0))
-        
-            @player = MC_Player.new
-            @level_dat_nbt.insert(@player.get_nbt())
-        end
-    end
-    
-    def level_name()
-        @level_dat_nbt[:LevelName].value
-    end
-    
-    def level_name=(h)
-        @level_dat_nbt[:LevelName] = h
-    end
-    
-    def size_on_disk()
-        @level_dat_nbt[:SizeOnDisk].value
-    end
-    
-    def size_on_disk=(h)
-        @level_dat_nbt[:SizeOnDisk] = h
-    end
-    
-    def last_played()
-        @level_dat_nbt[:LastPlayed].value
-    end
-    
-    def last_played=(h)
-        @level_dat_nbt[:LastPlayed] = h
-    end
-    
-    def random_seed()
-        @level_dat_nbt[:RandomSeed].value
-    end
-    
-    def random_seed=(h)
-        @level_dat_nbt[:RandomSeed] = h
-    end
-    
-    def thundering=(h)
-        @level_dat_nbt[:thundering] = h
-    end
-    
-    def thundering()
-        @level_dat_nbt[:thundering].value
-    end
-    
-    def thunder_time=(h)
-        @level_dat_nbt[:thunderTime] = h
-    end
-    
-    def thunder_time()
-        @level_dat_nbt[:thunderTime].value
-    end
-    
-    def raining=(h)
-        @level_dat_nbt[:raining] = h
-    end
-    
-    def raining()
-        @level_dat_nbt[:raining].value
-    end
-    
-    def rain_time=(h)
-        @level_dat_nbt[:rainTime] = h
-    end
-    
-    def rain_time()
-        @level_dat_nbt[:rainTime].value
-    end
-    
-    def version=(h)
-        @level_dat_nbt[:version] = h
-    end
-    
-    def version()
-        @level_dat_nbt[:version].value
-    end
-    
-    def spawn=(pt)
-        @level_dat_nbt[:SpawnX] = pt[0]
-        @level_dat_nbt[:SpawnY] = pt[1]
-        @level_dat_nbt[:SpawnZ] = pt[2]
-    end
-    
-    def spawn()
-        [@level_dat_nbt[:SpawnX].value, @level_dat_nbt[:SpawnY].value, @level_dat_nbt[:SpawnZ].value]
-    end
-    
-    def get_nbt()
-        @player_nbt
-    end
-end # class MC_LevelDat
 
 end # module Magellan

@@ -45,6 +45,7 @@
 #include "nbtrb.h"
 #include "nbtio.h"
 
+#include "blockdefs.h"
 #include "magellan.h"
 
 #include "misc.h"
@@ -69,6 +70,17 @@ void WriteImage(SimpleImage & outputImage, const string & path);
 
 VALUE class_MCRegion;
 VALUE class_MCWorld;
+
+static VALUE id_value;
+static VALUE sym_dirty;
+static VALUE sym_nbt;
+static VALUE sym_Level;
+static VALUE sym_Blocks;
+static VALUE sym_Data;
+static VALUE sym_SkyLight;
+static VALUE sym_BlockLight;
+static VALUE sym_HeightMap;
+
 
 inline NBT_Region_IO * GetMCRegion(VALUE value) {
     NBT_Region_IO * val; Data_Get_Struct(value, NBT_Region_IO, val);
@@ -127,20 +139,67 @@ static VALUE MCRegion_write_chunk_nbt(VALUE self, VALUE rb_x, VALUE rb_z, VALUE 
 }
 
 
+static int ComputeLights_CB(VALUE key, VALUE value, VALUE rbchunks) {
+    return ST_CONTINUE;
+}
 static VALUE MCWorld_compute_lights(VALUE self) {
+    // Need to iterate over all dirty chunks and recompute lighting values
+    // Lighting changes in a chunk can affect adjacent chunks as well
+    VALUE rbchunks = rb_iv_get(self, "@chunks");
+    rb_hash_foreach(rbchunks, (int (*)(...))ComputeLights_CB, rbchunks);
     return Qnil;
 }
+
+static int ComputeHeights_CB(VALUE key, VALUE value, VALUE rbchunks) {
+    if(rb_hash_aref(value, sym_dirty) == Qfalse)
+        return ST_CONTINUE;
+    
+    VALUE rbnbt = rb_hash_aref(value, sym_nbt);
+    VALUE rblevel = rb_hash_aref(rb_ivar_get(rbnbt, id_value), sym_Level);
+    VALUE rbblocks = rb_hash_aref(rb_ivar_get(rblevel, id_value), sym_Blocks);
+    VALUE rbheights = rb_hash_aref(rb_ivar_get(rblevel, id_value), sym_HeightMap);
+    VALUE rbblockvals = rb_ivar_get(rbblocks, id_value);
+    VALUE rbheightvals = rb_ivar_get(rbheights, id_value);
+    
+    char * blocks = RSTRING_PTR(rbblockvals);
+    char * heightmap = RSTRING_PTR(rbheightvals);
+    
+    for(int x = 0; x < 16; ++x)
+    for(int z = 0; z < 16; ++z)
+    {
+        int y = 127;
+        while(y > 0 && blockdefs[blocks[(x*16 + z)*128 + y]].opacity == 0)
+            --y;
+        
+        heightmap[z*16 + x] = y;
+    }
+    
+    return ST_CONTINUE;
+}
 static VALUE MCWorld_compute_heights(VALUE self) {
+    // Need to iterate over all dirty chunks and recompute heightmap values
+    // This can be done on a chunk-by-chunk basis and only affects dirty chunks
+    VALUE rbchunks = rb_iv_get(self, "@chunks");
+    rb_hash_foreach(rbchunks, (int (*)(...))ComputeHeights_CB, rbchunks);
     return Qnil;
 }
 
 
 extern "C" void Init_magellan()
 {
+    id_value = rb_intern("value");
+    sym_dirty = ID2SYM(rb_intern("dirty"));
+    sym_nbt = ID2SYM(rb_intern("nbt"));
+    sym_Level = ID2SYM(rb_intern("Level"));
+    sym_Blocks = ID2SYM(rb_intern("Blocks"));
+    sym_Data = ID2SYM(rb_intern("Data"));
+    sym_SkyLight = ID2SYM(rb_intern("SkyLight"));
+    sym_BlockLight = ID2SYM(rb_intern("BlockLight"));
+    sym_HeightMap = ID2SYM(rb_intern("HeightMap"));
+    
     VALUE mMGLN = rb_define_module("Magellan");
     Init_nbt();
     rb_define_const(mMGLN, "MCPATH", rb_str_new2(MCPath().c_str()));
-//     global->Set(v8::String::New("MCPATH"), v8::String::New(MCPath().c_str()));
     
     class_MCRegion = rb_define_class("MCRegion", rb_cObject);
     
@@ -157,44 +216,6 @@ extern "C" void Init_magellan()
     rb_define_method(class_MCWorld, "compute_lights_intern", RUBY_METHOD_FUNC(MCWorld_compute_lights), 0);
     rb_define_method(class_MCWorld, "compute_heights_intern", RUBY_METHOD_FUNC(MCWorld_compute_heights), 0);
 }
-// int main(int argc, char * argv[])
-// {
-// //    TestImages();
-//     if(argc < 2)
-//     {
-//         cout << "Magellan Minecraft Mapper" << endl;
-//         
-//         cout << "Usage:" << endl;
-//         cout << "magellan COMMAND|SCRIPT [OPTIONS]" << endl;
-//         return EXIT_FAILURE;
-//     }
-//     
-//     //ParseArgs(argc, argv);
-//     
-//  LoadTextures();
-//  //cout << "Textures loaded" << endl;
-//     
-//     v8::HandleScope handle_scope;
-//     v8::Handle<v8::ObjectTemplate> global_tmpl = V8_InitBase();
-//     V8NBT_InitBindings(global_tmpl);
-//     MGV8_InitBindings(global_tmpl);
-//     
-//     v8::Persistent<v8::Context> context = v8::Context::New(NULL, global_tmpl);
-//     v8::Context::Scope context_scope(context);
-//     v8::Handle<v8::Object> global = context->Global();
-//     
-//     global->Set(v8::String::New("MCPATH"), v8::String::New(MCPath().c_str()));
-//     
-//     v8::Handle<v8::Array> V8ARGV = v8::Array::New(argc);
-//     for(int i = 0; i < argc; ++i)
-//         V8ARGV->Set(v8::Number::New(i), v8::String::New(argv[i]));
-//     global->Set(v8::String::New("ARGV"), V8ARGV);
-//     
-//     RunMagellanScript(argv[1]);
-//     
-//  return EXIT_SUCCESS;
-// }
-
 
 void WriteImage(SimpleImage & outputImage, const string & path)
 {

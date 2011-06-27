@@ -319,8 +319,8 @@ MC_Block MC_World::GetBlock(int32_t x, int32_t y, int32_t z) const
         return block;
     
     // need to round negative numbers down, not toward zero
-    int cx = (x < 0)? ((x/16) - 1) : x/16;
-    int cz = (z < 0)? ((z/16) - 1) : z/16;
+    int cx = x & 15;//(x < 0)? ((x/16) - 1) : x/16;
+    int cz = z & 15;//(z < 0)? ((z/16) - 1) : z/16;
     
     const MC_Chunk * chunk = ChunkAt(cx, cz);
     if(chunk) {

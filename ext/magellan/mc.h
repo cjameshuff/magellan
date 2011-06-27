@@ -87,7 +87,7 @@ class MC_Chunk {
     void SetHeightmap(int32_t x, int32_t z, uint8_t val) {(*heightmap)[z*16 + x] = val;}
     uint8_t GetHeightmap(int32_t x, int32_t z) const {return (*heightmap)[z*16 + x];}
 
-static int32_t GetIdx(int32_t x, int32_t y, int32_t z) {return y + (z + x*16)*128;}
+static int32_t GetIdx(int32_t x, int32_t y, int32_t z) {return (x*16 + z)*128 + y;}
 // Compute indices of neighboring blocks
 static int32_t GetIdxD(int32_t idx) {return idx - 1;}
 static int32_t GetIdxU(int32_t idx) {return idx + 1;}
@@ -150,7 +150,7 @@ static bool IdxGood(int32_t idx) {return idx > 0 && idx < (16*16*128);}
         if(idx & 0x01)
             (*data)[halfidx] = (bd << 4) | ((*data)[halfidx] & 0x0F);
         else
-            (*data)[halfidx] = ((*data)[halfidx] << 4) | (bd & 0x0F);
+            (*data)[halfidx] = ((*data)[halfidx] & 0xF0) | (bd & 0x0F);
     }
 };
 

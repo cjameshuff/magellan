@@ -7,6 +7,8 @@ else
 	$CPPFLAGS = "-DLINUX"
 end
 
+`#{File.dirname($0)}/gen_blockdefs_h.rb`
+
 $srcs = []
 $srcs.push('blocktypes.cpp')
 $srcs.push('mc.cpp')
