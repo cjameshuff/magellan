@@ -18,18 +18,18 @@ data = level_dat[:Data]
 player = data[:Player]
 inventory = player[:Inventory]
 
-#puts("Inventory items: %@\n", inventory.size());
+#puts("Inventory items: %@\n", inventory.size())
 
 inventory.value.each do |item|
-    id = item[:id].value;
-    damage = item[:Damage].value;
-    count = item[:Count].value;
-    slot = item[:Slot].value;
+    id = item[:id].value
+    damage = item[:Damage].value
+    count = item[:Count].value
+    slot = item[:Slot].value
     # Dyes use the damage field to store the dye subtype, wool uses it to specify the color, and
     # maps use it to store the map ID.
-    if(damage > 0 && id != ITEM_IDS[:Dye] && id != ITEM_IDS[:Wool] && id != ITEM_IDS[:Map])
-        puts "Repairing %s in slot %d, damage %d\n" % [ITEM_NAMES[id], slot, damage];
-        item[:Damage].value = 0;
+    if(damage > 0 && id != ITEMS_BY_NAME[:Dye][:id] && id != ITEMS_BY_NAME[:Wool][:id] && id != ITEMS_BY_NAME[:Map][:id])
+        puts "Repairing %s in slot %d, damage %d\n" % [ITEMS_BY_ID[id][:name], slot, damage]
+        item[:Damage].value = 0
     end
 end
 

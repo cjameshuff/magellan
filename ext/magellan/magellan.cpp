@@ -150,7 +150,8 @@ static VALUE MCWorld_compute_lights(VALUE self) {
     return Qnil;
 }
 
-static int ComputeHeights_CB(VALUE key, VALUE value, VALUE rbchunks) {
+static int ComputeHeights_CB(VALUE key, VALUE value, VALUE rbchunks)
+{
     if(rb_hash_aref(value, sym_dirty) == Qfalse)
         return ST_CONTINUE;
     

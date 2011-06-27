@@ -26,5 +26,5 @@ inventory.value.each {|item|
     damage = item[:Damage].value
     count = item[:Count].value
     slot = item[:Slot].value
-    puts "%d of %s in slot %d, damage %d" % [count, ITEM_NAMES[id], slot, damage]
+    puts "%d of %s in slot %d, damage %d" % [count, ITEMS_BY_ID[id][:name], slot, damage]
 }

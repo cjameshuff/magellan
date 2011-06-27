@@ -16,37 +16,11 @@ if(ARGV.length < 2)
     exit()
 end
 
-damage = 0
-worldName = ARGV[0]
-itemName = ARGV[1].to_sym
-itemCount = (ARGV.length >= 3)? ARGV[2].to_i : 1
+world_name = ARGV[0]
+item_name = ARGV[1].to_sym
+item_count = (ARGV.length >= 3)? ARGV[2].to_i : 1
 
-itemID = nil
-if(DYE_IDS[itemName] != nil)
-    itemID = ITEM_IDS[:Dye]
-    damage = DYE_IDS[itemName]
-elsif(WOOD_IDS[itemName] != nil)
-    itemID = ITEM_IDS[:Log]
-    damage = WOOD_IDS[itemName]
-elsif(SLAB_IDS[itemName] != nil)
-    itemID = ITEM_IDS[:Slab]
-    damage = SLAB_IDS[itemName]
-elsif(FUEL_IDS[itemName] != nil)
-    itemID = ITEM_IDS[:Coal]
-    damage = FUEL_IDS[itemName]
-elsif(SHRUB_IDS[itemName] != nil)
-    itemID = ITEM_IDS[:TallGrass]
-    damage = SHRUB_IDS[itemName]
-else
-    itemID = ITEM_IDS[itemName]
-end
-
-if(itemID == nil)
-    puts "Unknown item type specified."
-    exit()
-end
-
-level_dat = load_level_dat(worldName)
+level_dat = load_level_dat(world_name)
 freeslots = get_free_inv_slots(level_dat)
 
 inventory = level_dat[:Data][:Player][:Inventory]
@@ -58,6 +32,6 @@ if(freeslots.length == 0)
     exit()
 end
 
-add_inv_item(level_dat, itemID, damage, itemCount, freeslots[0])
+add_inv_item(level_dat, item_name, damage, item_count, freeslots[0])
 
-write_level_dat(level_dat, worldName)
+write_level_dat(level_dat, world_name)

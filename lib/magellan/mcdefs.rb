@@ -21,241 +21,293 @@ CHUNK_DIRS = [
     "1i", "1j", "1k", "1l", "1m", "1n", "1o", "1p", "1q", "1r", "1s", "1t", "1u", "1v", "1w", "1x", "1y", "1z" # 54-72
 ]
 
-# Item IDs referenced by item name
-# TODO:
-# Possibly store more block/item information in table. Whether an item is
-# inventory-safe, etc.
+
 BLOCKS_BY_ID = {}
 BLOCKS_BY_NAME = {}
 
-
 BLOCK_TYPES = [
-    {name: 'Air',          id: 0x00, opacity: 0},
-    {name: 'Stone',        id: 0x01, opacity: 15},
-    {name: 'Grass',        id: 0x02, opacity: 15},
-    {name: 'Dirt',         id: 0x03, opacity: 15},
-    {name: 'Cobblestone',  id: 0x04, opacity: 15},
-    {name: 'Wood',         id: 0x05, opacity: 15},
-    {name: 'Sapling',      id: 0x06, opacity: 0},
-    {name: 'Bedrock',      id: 0x07, opacity: 15},
-    {name: 'Water',        id: 0x08, opacity: 1},
-    {name: 'WaterPooled',  id: 0x09, opacity: 1},
-    {name: 'Lava',         id: 0x0A, opacity: 15},
-    {name: 'LavaPooled',   id: 0x0B, opacity: 15},
-    {name: 'Sand',         id: 0x0C, opacity: 15},
-    {name: 'Gravel',       id: 0x0D, opacity: 15},
-    {name: 'GoldOre',      id: 0x0E, opacity: 15},
-    {name: 'IronOre',      id: 0x0F, opacity: 15},
+    {name: 'Air',          id: 0x00},
+    {name: 'Stone',        id: 0x01},
+    {name: 'Grass',        id: 0x02},
+    {name: 'Dirt',         id: 0x03},
+    {name: 'Cobblestone',  id: 0x04},
+    {name: 'Wood',         id: 0x05},
+    {name: 'Sapling',      id: 0x06},
+    {name: 'Bedrock',      id: 0x07},
+    {name: 'Water',        id: 0x08},
+    {name: 'WaterPooled',  id: 0x09},
+    {name: 'Lava',         id: 0x0A},
+    {name: 'LavaPooled',   id: 0x0B},
+    {name: 'Sand',         id: 0x0C},
+    {name: 'Gravel',       id: 0x0D},
+    {name: 'GoldOre',      id: 0x0E},
+    {name: 'IronOre',      id: 0x0F},
     
-    {name: 'CoalOre',      id: 0x10, opacity: 15},
-    {name: 'Log',          id: 0x11, opacity: 15},
-    {name: 'Leaves',       id: 0x12, opacity: 1},
-    {name: 'Sponge',       id: 0x13, opacity: 15},
-    {name: 'Glass',        id: 0x14, opacity: 0},
+    {name: 'CoalOre',      id: 0x10},
+    {name: 'Log',          id: 0x11},
+    {name: 'Leaves',       id: 0x12},
+    {name: 'Sponge',       id: 0x13},
+    {name: 'Glass',        id: 0x14},
     
-    {name: 'LapisOre',     id: 0x15, opacity: 15},
-    {name: 'LapisBlock',   id: 0x16, opacity: 15},
-    {name: 'Dispenser',    id: 0x17, opacity: 15},
-    {name: 'Sandstone',    id: 0x18, opacity: 15},
-    {name: 'NoteBlock',    id: 0x19, opacity: 15},
-    {name: 'BedBlock',     id: 0x1A, opacity: 15},
-    {name: 'PoweredRail',  id: 0x1B, opacity: 15},
-    {name: 'DetectorRail', id: 0x1C, opacity: 15},
-    {name: 'Web',          id: 0x1E, opacity: 0},
-    {name: 'TallGrass',    id: 0x1F, opacity: 0},
-    {name: 'DeadShrub',    id: 0x20, opacity: 0},
-    {name: 'Wool',         id: 0x23, opacity: 15},
+    {name: 'LapisOre',     id: 0x15},
+    {name: 'LapisBlock',   id: 0x16},
+    {name: 'Dispenser',    id: 0x17},
+    {name: 'Sandstone',    id: 0x18},
+    {name: 'NoteBlock',    id: 0x19},
+    {name: 'BedBlock',     id: 0x1A},
+    {name: 'PoweredRail',  id: 0x1B},
+    {name: 'DetectorRail', id: 0x1C},
+    {name: 'Web',          id: 0x1E},
+    {name: 'TallGrass',    id: 0x1F},
+    {name: 'DeadShrub',    id: 0x20},
+    {name: 'Wool',         id: 0x23},
     
-    {name: 'YellowFlower',  id: 0x25, opacity: 15},
-    {name: 'RedRose',       id: 0x26, opacity: 15},
-    {name: 'BrownMushroom', id: 0x27, opacity: 15},
-    {name: 'RedMushroom',   id: 0x28, opacity: 15},
-    {name: 'GoldBlock',     id: 0x29, opacity: 15},
-    {name: 'IronBlock',     id: 0x2A, opacity: 15},
-    {name: 'DoubleSlab',    id: 0x2B, opacity: 15},
-    {name: 'Slab',          id: 0x2C, opacity: 15},
-    {name: 'Brick',         id: 0x2D, opacity: 15},
-    {name: 'TNT',           id: 0x2E, opacity: 15},
-    {name: 'BookCase',      id: 0x2F, opacity: 15},
+    {name: 'YellowFlower',  id: 0x25},
+    {name: 'RedRose',       id: 0x26},
+    {name: 'BrownMushroom', id: 0x27},
+    {name: 'RedMushroom',   id: 0x28},
+    {name: 'GoldBlock',     id: 0x29},
+    {name: 'IronBlock',     id: 0x2A},
+    {name: 'DoubleSlab',    id: 0x2B},
+    {name: 'Slab',          id: 0x2C},
+    {name: 'Brick',         id: 0x2D},
+    {name: 'TNT',           id: 0x2E},
+    {name: 'BookCase',      id: 0x2F},
     
-    {name: 'MossyCobblestone', id: 0x30, opacity: 15},
-    {name: 'Obsidian',         id: 0x31, opacity: 15},
-    {name: 'Torch',            id: 0x32, opacity: 0},
-    {name: 'Fire',             id: 0x33, opacity: 15},
-    {name: 'MobSpawner',       id: 0x34, opacity: 15},
-    {name: 'WoodStairs',       id: 0x35, opacity: 15},
-    {name: 'Chest',            id: 0x36, opacity: 15},
-    {name: 'RedstoneWire',     id: 0x37, opacity: 15},
-    {name: 'DiamondOre',       id: 0x38, opacity: 15},
-    {name: 'DiamondBlock',     id: 0x39, opacity: 15},
-    {name: 'Workbench',        id: 0x3A, opacity: 15},
-    {name: 'Crops',            id: 0x3B, opacity: 15},
-    {name: 'Soil',             id: 0x3C, opacity: 15},
-    {name: 'Furnace',          id: 0x3D, opacity: 15},
-    {name: 'BurningFurnace',   id: 0x3E, opacity: 15},
-    {name: 'SignPost',         id: 0x3F, opacity: 15},# sign placed on a post
+    {name: 'MossyCobblestone', id: 0x30},
+    {name: 'Obsidian',         id: 0x31},
+    {name: 'Torch',            id: 0x32},
+    {name: 'Fire',             id: 0x33},
+    {name: 'MobSpawner',       id: 0x34},
+    {name: 'WoodStairs',       id: 0x35},
+    {name: 'Chest',            id: 0x36},
+    {name: 'RedstoneWire',     id: 0x37},
+    {name: 'DiamondOre',       id: 0x38},
+    {name: 'DiamondBlock',     id: 0x39},
+    {name: 'Workbench',        id: 0x3A},
+    {name: 'Crops',            id: 0x3B},
+    {name: 'Soil',             id: 0x3C},
+    {name: 'Furnace',          id: 0x3D},
+    {name: 'BurningFurnace',   id: 0x3E},
+    {name: 'SignPost',         id: 0x3F},# sign placed on a post
     
-    {name: 'WoodDoorBlock',      id: 0x40, opacity: 15},
-    {name: 'Ladder',             id: 0x41, opacity: 15},
-    {name: 'Rail',               id: 0x42, opacity: 15},
-    {name: 'CobblestoneStairs',  id: 0x43, opacity: 15},
-    {name: 'WallSign',           id: 0x44, opacity: 0},# sign hung on a wall
-    {name: 'Lever',              id: 0x45, opacity: 0},
-    {name: 'StonePressurePlate', id: 0x46, opacity: 15},
-    {name: 'IronDoorBlock',      id: 0x47, opacity: 15},
-    {name: 'WoodPressurePlate',  id: 0x48, opacity: 15},
-    {name: 'RedstoneOre',        id: 0x49, opacity: 15},
-    {name: 'GlowingRedstoneOre', id: 0x4A, opacity: 15},
-    {name: 'RedstoneTorchOff',   id: 0x4B, opacity: 15},
-    {name: 'RedstoneTorchOn',    id: 0x4C, opacity: 15},
-    {name: 'StoneButton',        id: 0x4D, opacity: 0},
-    {name: 'Snow',               id: 0x4E, opacity: 15},
-    {name: 'Ice',                id: 0x4F, opacity: 15},
+    {name: 'WoodDoorBlock',      id: 0x40},
+    {name: 'Ladder',             id: 0x41},
+    {name: 'Rail',               id: 0x42},
+    {name: 'CobblestoneStairs',  id: 0x43},
+    {name: 'WallSign',           id: 0x44},# sign hung on a wall
+    {name: 'Lever',              id: 0x45},
+    {name: 'StonePressurePlate', id: 0x46},
+    {name: 'IronDoorBlock',      id: 0x47},
+    {name: 'WoodPressurePlate',  id: 0x48},
+    {name: 'RedstoneOre',        id: 0x49},
+    {name: 'GlowingRedstoneOre', id: 0x4A},
+    {name: 'RedstoneTorchOff',   id: 0x4B},
+    {name: 'RedstoneTorchOn',    id: 0x4C},
+    {name: 'StoneButton',        id: 0x4D},
+    {name: 'Snow',               id: 0x4E},
+    {name: 'Ice',                id: 0x4F},
     
-    {name: 'SnowBlock',      id: 0x50, opacity: 15},
-    {name: 'Cactus',         id: 0x51, opacity: 15},
-    {name: 'Clay',           id: 0x52, opacity: 15},
-    {name: 'SugarCaneBlock', id: 0x53, opacity: 0},
-    {name: 'Jukebox',        id: 0x54, opacity: 15},
-    {name: 'Fence',          id: 0x55, opacity: 0},
-    {name: 'Pumpkin',        id: 0x56, opacity: 15},
-    {name: 'Netherstone',    id: 0x57, opacity: 15},
-    {name: 'SlowSand',       id: 0x58, opacity: 15},
-    {name: 'LightStone',     id: 0x59, opacity: 15},
-    {name: 'Portal',         id: 0x5A, opacity: 0},
-    {name: 'GlowingPumpkin', id: 0x5B, opacity: 15},
-    {name: 'CakeBlock',      id: 0x5C, opacity: 15},
-    {name: 'LockedChest',    id: 0x5F, opacity: 15},
-    {name: 'Trapdoor',       id: 0x60, opacity: 0}
+    {name: 'SnowBlock',      id: 0x50},
+    {name: 'Cactus',         id: 0x51},
+    {name: 'Clay',           id: 0x52},
+    {name: 'SugarCaneBlock', id: 0x53},
+    {name: 'Jukebox',        id: 0x54},
+    {name: 'Fence',          id: 0x55},
+    {name: 'Pumpkin',        id: 0x56},
+    {name: 'Netherstone',    id: 0x57},
+    {name: 'SlowSand',       id: 0x58},
+    {name: 'LightStone',     id: 0x59},
+    {name: 'Portal',         id: 0x5A},
+    {name: 'GlowingPumpkin', id: 0x5B},
+    {name: 'CakeBlock',      id: 0x5C},
+    {name: 'LockedChest',    id: 0x5F},
+    {name: 'Trapdoor',       id: 0x60}
 ]
 
-
-ITEM_NAMES = {}
-
-ITEM_IDS = {
-    IronSpade:           0x100,
-    IronPickaxe:         0x101,
-    IronAxe:             0x102,
-    FlintSteel:          0x103,
-    Apple:               0x104,
-    Bow:                 0x105,
-    Arrow:               0x106,
-    Coal:                0x107,
-    Diamond:             0x108,
-    IronIngot:           0x109,
-    GoldIngot:           0x10A,
-    IronSword:           0x10B,
-    WoodenSword:         0x10C,
-    WoodenSpade:         0x10D,
-    WoodenPickaxe:       0x10E,
-    WoodenAxe:           0x10F,
-    StoneSword:          0x110,
-    StoneSpade:          0x111,
-    StonePickaxe:        0x112,
-    StoneAxe:            0x113,
-    DiamondSword:        0x114,
-    DiamondSpade:        0x115,
-    DiamondPickaxe:      0x116,
-    DiamondAxe:          0x117,
-    Stick:               0x118,
-    Bowl:                0x119,
-    MushroomSoup:        0x11A,
-    GoldSword:           0x11B,
-    GoldSpade:           0x11C,
-    GoldPickaxe:         0x11D,
-    GoldAxe:             0x11E,
-    String:              0x11F,
-    Feather:             0x120,
-    Gunpowder:           0x121,
-    WoodenHoe:           0x122,
-    StoneHoe:            0x123,
-    IronHoe:             0x124,
-    DiamondHoe:          0x125,
-    GoldHoe:             0x126,
-    Seeds:               0x127,
-    Wheat:               0x128,
-    Bread:               0x129,
-    LeatherHelmet:       0x12A,
-    LeatherChestplate:   0x12B,
-    LeatherLeggings:     0x12C,
-    LeatherBoots:        0x12D,
-    ChainmailHelmet:     0x12E,
-    ChainmailChestplate: 0x12F,
-    ChainmailLeggings:   0x130,
-    ChainmailBoots:      0x131,
-    IronHelmet:          0x132,
-    IronChestplate:      0x133,
-    IronLeggings:        0x134,
-    IronBoots:           0x135,
-    DiamondHelmet:       0x136,
-    DiamondChestplate:   0x137,
-    DiamondLeggings:     0x138,
-    DiamondBoots:        0x139,
-    GoldHelmet:          0x13A,
-    GoldChestplate:      0x13B,
-    GoldLeggings:        0x13C,
-    GoldBoots:           0x13D,
-    Flint:               0x13E,
-    Pork:                0x13F,
-    GrilledPork:         0x140,
-    Painting:            0x141,
-    GoldenApple:         0x142,
-    Sign:                0x143,
-    WoodenDoor:          0x144,
-    Bucket:              0x145,
-    WaterBucket:         0x146,
-    LavaBucket:          0x147,
-    MineCart:            0x148,
-    Saddle:              0x149,
-    IronDoor:            0x14A,
-    Redstone:            0x14B,
-    Snowball:            0x14C,
-    Boat:                0x14D,
-    Leather:             0x14E,
-    MilkBucket:          0x14F,
-    ClayBrick:           0x150,
-    ClayBalls:           0x151,
-    SugarCane:           0x152,
-    Paper:               0x153,
-    Book:                0x154,
-    SlimeBall:           0x155,
-    StorageMinecart:     0x156,
-    PoweredMinecart:     0x157,
-    Egg:                 0x158,
-    Compass:             0x159,
-    FishingRod:          0x15A,
-    Watch:               0x15B,
-    LightstoneDust:      0x15C,
-    RawFish:             0x15D,
-    CookedFish:          0x15E,
-    Dye:                 0x15F,
-    Bone:                0x160,
-    Sugar:               0x161,
-    Cake:                0x162,
-    Bed:                 0x163,
-    Repeater:            0x164,
-    Cookie:              0x165,
-    Map:                 0x166,
-    GoldRecord:          0x8D0,
-    GreenRecord:         0x8D1
+# These blocks are fully transparent
+[
+    :Air,
+    :Sapling,
+    :Glass,
+    :Web,
+    :TallGrass,
+    :DeadShrub,
+    :Fire,
+    :Torch,
+    :SignPost,
+    :WallSign,
+    :Lever,
+    :Fence,
+    :Portal
+].each {|item_name|
+    BLOCKS_BY_NAME[item_name.to_sym][:opacity] = 0
 }
 
-# Generate reverse lookup table mapping block IDs to block names
+# These blocks are partially transparent
+[
+    :Water,
+    :WaterPooled,
+    :Leaves,
+    :Trapdoor
+].each {|item_name|
+    BLOCKS_BY_NAME[item_name.to_sym][:opacity] = 1
+}
+
+BLOCK_TYPES.each {|block|
+    if(block[:opacity] == nil)
+        block[:opacity] = 15
+    end
+}
+
+# These blocks can't usefully be put in the inventory
+[
+    :BedBlock,
+    :WoodDoorBlock,
+    :BurningFurnace,
+    :Portal,
+    :RedstoneTorchOn,
+    :GlowingRedstoneOre
+].each {|item_name|
+    BLOCKS_BY_NAME[item_name.to_sym][:inventory_safe] = false
+}
+
+BLOCK_TYPES.each {|block|
+    if(block[:inventory_safe] == nil)
+        block[:inventory_safe] = true
+    end
+}
+
+
+ITEMS_BY_ID = {}
+ITEMS_BY_NAME = {}
+ITEM_TYPES = {
+    {name: "IronSpade",         id: 0x100},
+    {name: "IronPickaxe",       id: 0x101},
+    {name: "IronAxe",           id: 0x102},
+    {name: "FlintSteel",        id: 0x103},
+    {name: "Apple",             id: 0x104},
+    {name: "Bow",               id: 0x105},
+    {name: "Arrow",             id: 0x106},
+    {name: "Coal",              id: 0x107},
+    {name: "Diamond",           id: 0x108},
+    {name: "IronIngot",         id: 0x109},
+    {name: "GoldIngot",         id: 0x10A},
+    {name: "IronSword",         id: 0x10B},
+    {name: "WoodenSword",       id: 0x10C},
+    {name: "WoodenSpade",       id: 0x10D},
+    {name: "WoodenPickaxe",     id: 0x10E},
+    {name: "WoodenAxe",         id: 0x10F},
+    {name: "StoneSword",        id: 0x110},
+    {name: "StoneSpade",        id: 0x111},
+    {name: "StonePickaxe",      id: 0x112},
+    {name: "StoneAxe",          id: 0x113},
+    {name: "DiamondSword",      id: 0x114},
+    {name: "DiamondSpade",      id: 0x115},
+    {name: "DiamondPickaxe",    id: 0x116},
+    {name: "DiamondAxe",        id: 0x117},
+    {name: "Stick",             id: 0x118},
+    {name: "Bowl",              id: 0x119},
+    {name: "MushroomSoup",      id: 0x11A},
+    {name: "GoldSword",         id: 0x11B},
+    {name: "GoldSpade",         id: 0x11C},
+    {name: "GoldPickaxe",       id: 0x11D},
+    {name: "GoldAxe",           id: 0x11E},
+    {name: "String",            id: 0x11F},
+    {name: "Feather",           id: 0x120},
+    {name: "Gunpowder",         id: 0x121},
+    {name: "WoodenHoe",         id: 0x122},
+    {name: "StoneHoe",          id: 0x123},
+    {name: "IronHoe",           id: 0x124},
+    {name: "DiamondHoe",        id: 0x125},
+    {name: "GoldHoe",           id: 0x126},
+    {name: "Seeds",             id: 0x127},
+    {name: "Wheat",             id: 0x128},
+    {name: "Bread",             id: 0x129},
+    {name: "LeatherHelmet",     id: 0x12A},
+    {name: "LeatherChestplate", id: 0x12B},
+    {name: "LeatherLeggings",   id: 0x12C},
+    {name: "LeatherBoots",      id: 0x12D},
+    {name: "ChainmailHelmet",   id: 0x12E},
+    {name: "ChainmailChestplate",   id: 0x12F},
+    {name: "ChainmailLeggings",     id: 0x130},
+    {name: "ChainmailBoots",    id: 0x131},
+    {name: "IronHelmet",        id: 0x132},
+    {name: "IronChestplate",    id: 0x133},
+    {name: "IronLeggings",      id: 0x134},
+    {name: "IronBoots",         id: 0x135},
+    {name: "DiamondHelmet",     id: 0x136},
+    {name: "DiamondChestplate",     id: 0x137},
+    {name: "DiamondLeggings",   id: 0x138},
+    {name: "DiamondBoots",      id: 0x139},
+    {name: "GoldHelmet",        id: 0x13A},
+    {name: "GoldChestplate",    id: 0x13B},
+    {name: "GoldLeggings",      id: 0x13C},
+    {name: "GoldBoots",         id: 0x13D},
+    {name: "Flint",             id: 0x13E},
+    {name: "Pork",              id: 0x13F},
+    {name: "GrilledPork",       id: 0x140},
+    {name: "Painting",          id: 0x141},
+    {name: "GoldenApple",       id: 0x142},
+    {name: "Sign",              id: 0x143},
+    {name: "WoodenDoor",        id: 0x144},
+    {name: "Bucket",            id: 0x145},
+    {name: "WaterBucket",       id: 0x146},
+    {name: "LavaBucket",        id: 0x147},
+    {name: "MineCart",          id: 0x148},
+    {name: "Saddle",            id: 0x149},
+    {name: "IronDoor",          id: 0x14A},
+    {name: "Redstone",          id: 0x14B},
+    {name: "Snowball",          id: 0x14C},
+    {name: "Boat",              id: 0x14D},
+    {name: "Leather",           id: 0x14E},
+    {name: "MilkBucket",        id: 0x14F},
+    {name: "ClayBrick",         id: 0x150},
+    {name: "ClayBalls",         id: 0x151},
+    {name: "SugarCane",         id: 0x152},
+    {name: "Paper",             id: 0x153},
+    {name: "Book",              id: 0x154},
+    {name: "SlimeBall",         id: 0x155},
+    {name: "StorageMinecart",   id: 0x156},
+    {name: "PoweredMinecart",   id: 0x157},
+    {name: "Egg",               id: 0x158},
+    {name: "Compass",           id: 0x159},
+    {name: "FishingRod",        id: 0x15A},
+    {name: "Watch",             id: 0x15B},
+    {name: "LightstoneDust",    id: 0x15C},
+    {name: "RawFish",           id: 0x15D},
+    {name: "CookedFish",        id: 0x15E},
+    {name: "Dye",               id: 0x15F},
+    {name: "Bone",              id: 0x160},
+    {name: "Sugar",             id: 0x161},
+    {name: "Cake",              id: 0x162},
+    {name: "Bed",               id: 0x163},
+    {name: "Repeater",          id: 0x164},
+    {name: "Cookie",            id: 0x165},
+    {name: "Map",               id: 0x166},
+    {name: "GoldRecord",        id: 0x8D0},
+    {name: "GreenRecord",       id: 0x8D1}
+}
+
+# Generate lookup tables mapping block IDs to block names and vice versa
 BLOCK_TYPES.each {|block|
     BLOCKS_BY_ID[block[:id]] = block
-    BLOCKS_BY_NAME[block[:name]] = block
+    BLOCKS_BY_NAME[block[:name].to_sym] = block
+    # Blocks are items as well
+    # Add block types to table of item types
+    # TODO: rather than mix the tables like this, add logic to the lookup functions
+    ITEM_TYPES.push(block)
 }
 
-# Blocks are items as well
-# Add block names to table of item IDs
-# TODO: rather than mix the tables like this, add logic to the lookup functions
-BLOCKS_BY_NAME.each {|name, id| ITEM_IDS[name] = id}
-
-# Generate reverse lookup table mapping item IDs to item names
-ITEM_IDS.each {|name, id| ITEM_NAMES[id] = name.to_s}
+# Generate lookup tables mapping item IDs to item names and vice versa
+ITEM_TYPES.each {|item|
+    ITEMS_BY_ID[item[:id]] = item
+    ITEMS_BY_NAME[item[:name].to_sym] = item
+}
 
 
-# Note: Dyes, logs, slabs, fuel, * require additional data, stored in the "damage" field.
+# Note: Dyes, logs, slabs, fuel, * require additional data,
+# stored in the "damage" field when in the inventory.
 
 DYE_IDS = {
     InkSac:          0x0,
@@ -331,7 +383,7 @@ def get_free_inv_slots(level_dat)
         slot = item[:Slot].value
         count = item[:Count].value
         damage = item[:Damage].value
-        puts "%d of %s in slot %d, damage %d" % [count, ITEM_NAMES[id], slot, damage]
+        puts "%d of %s in slot %d, damage %d" % [count, ITEMS_BY_ID[itemID][:name], slot, damage]
         invslots[slot] = false
     }
     
@@ -345,11 +397,38 @@ def get_free_inv_slots(level_dat)
     freeslots
 end
 
-def add_inv_item(level_dat, itemID, damage, count, slot)
+def add_inv_item(level_dat, item_name, damage, count, slot)
+    item = nil
+    damage = 0
+    item_sym = item_name.to_sym
+    if(DYE_IDS[item_sym] != nil)
+        item = ITEMS_BY_NAME[:Dye]
+        damage = DYE_IDS[item_sym]
+    elsif(WOOD_IDS[item_sym] != nil)
+        item = ITEMS_BY_NAME[:Log]
+        damage = WOOD_IDS[item_sym]
+    elsif(SLAB_IDS[item_sym] != nil)
+        item = ITEMS_BY_NAME[:Slab]
+        damage = SLAB_IDS[item_sym]
+    elsif(FUEL_IDS[item_sym] != nil)
+        item = ITEMS_BY_NAME[:Coal]
+        damage = FUEL_IDS[item_sym]
+    elsif(SHRUB_IDS[item_sym] != nil)
+        item = ITEMS_BY_NAME[:TallGrass]
+        damage = SHRUB_IDS[item_sym]
+    else
+        item = ITEMS_BY_NAME[item_sym]
+    end
+
+    if(item == nil)
+        puts "Unknown item type specified."
+        exit()
+    end
+    
     inventory = level_dat[:Data][:Player][:Inventory]
-    puts "Adding %d %s to slot %d\n" % [count, ITEM_NAMES[itemID], slot]
+    puts "Adding %d %s to slot %d\n" % [count, item[:name], slot]
     item = NBT.new_compound("")
-    item.insert(NBT.new_short("id", itemID))
+    item.insert(NBT.new_short("id", item[:id]))
     item.insert(NBT.new_short("Damage", damage))
     item.insert(NBT.new_byte("Count", count))
     item.insert(NBT.new_byte("Slot", slot))

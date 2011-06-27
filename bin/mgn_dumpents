@@ -32,32 +32,32 @@ end
 #    }
 
 def dump_entity(entity)
-    id = entity[:id].value;
-    pos = entity[:Pos].value;
-    x = pos[0].value;
-    y = pos[1].value;
-    z = pos[2].value;
+    id = entity[:id].value
+    pos = entity[:Pos].value
+    x = pos[0].value
+    y = pos[1].value
+    z = pos[2].value
     puts "\t#{id} at < #{x}, #{y}, #{z}>: #{entity.to_s}"
 end
 
 def dump_tile_entity(entity)
-    id = entity[:id].value;
-    x = entity[:x].value;
-    y = entity[:y].value;
-    z = entity[:z].value;
-#    id = level[:EntityId].value;# for MobSpawner
+    id = entity[:id].value
+    x = entity[:x].value
+    y = entity[:y].value
+    z = entity[:z].value
+#    id = level[:EntityId].value # for MobSpawner
     puts "\t#{id} at < #{x}, #{y}, #{z}>: #{entity.to_s}"
 end
 
 def dump_chunk(fin, x, z, chunk)
-    level = chunk[:Level];
-    lastUpdate = level[:LastUpdate].value;
-    xPos = level[:xPos].value;
-    zPos = level[:zPos].value;
-    terrainPopulated = level[:TerrainPopulated].value;
+    level = chunk[:Level]
+    lastUpdate = level[:LastUpdate].value
+    xPos = level[:xPos].value
+    zPos = level[:zPos].value
+    terrainPopulated = level[:TerrainPopulated].value
     
-    entities = level[:Entities].value;
-    tileEntities = level[:TileEntities].value;
+    entities = level[:Entities].value
+    tileEntities = level[:TileEntities].value
     
     if(entities.size > 0 || tileEntities.size > 0)
         puts "Region #{fin} chunk #{x}, #{z}: x = #{xPos}, z = #{zPos}"
