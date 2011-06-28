@@ -2,14 +2,6 @@
 module Magellan
 # http://www.minecraftwiki.net/wiki/Data_values
 
-# inventory slot numbers:
-# 0-8: equipped inventory (any item)
-# 9-35: main inventory (any item)
-# 80, 81, 82, 83: work area (any item)
-# 103: helmet
-# 102: torso
-# 101: leggings
-# 100: boots
 
 # A map from integers < 72 to base36 strings, used for putting chunks in the
 # right directories or for scanning through a world's chunk files.
@@ -103,7 +95,7 @@ BLOCK_TYPES = [
     {name: 'RedstoneOre',        id: 0x49},
     {name: 'GlowingRedstoneOre', id: 0x4A},
     {name: 'RedstoneTorchOff',   id: 0x4B},
-    {name: 'RedstoneTorchOn',    id: 0x4C},
+    {name: 'RedstoneTorch',      id: 0x4C},
     {name: 'StoneButton',        id: 0x4D},
     {name: 'Snow',               id: 0x4E},
     {name: 'Ice',                id: 0x4F},
@@ -124,6 +116,12 @@ BLOCK_TYPES = [
     {name: 'LockedChest',    id: 0x5F},
     {name: 'Trapdoor',       id: 0x60}
 ]
+
+# Generate lookup tables mapping block IDs to block names and vice versa
+BLOCK_TYPES.each {|block|
+    BLOCKS_BY_ID[block[:id]] = block
+    BLOCKS_BY_NAME[block[:name].to_sym] = block
+}
 
 # These blocks are fully transparent
 [
@@ -166,7 +164,7 @@ BLOCK_TYPES.each {|block|
     :WoodDoorBlock,
     :BurningFurnace,
     :Portal,
-    :RedstoneTorchOn,
+    :RedstoneTorchOff,
     :GlowingRedstoneOre
 ].each {|item_name|
     BLOCKS_BY_NAME[item_name.to_sym][:inventory_safe] = false
@@ -181,7 +179,7 @@ BLOCK_TYPES.each {|block|
 
 ITEMS_BY_ID = {}
 ITEMS_BY_NAME = {}
-ITEM_TYPES = {
+OTHER_ITEM_TYPES = [
     {name: "IronSpade",         id: 0x100},
     {name: "IronPickaxe",       id: 0x101},
     {name: "IronAxe",           id: 0x102},
@@ -287,17 +285,19 @@ ITEM_TYPES = {
     {name: "Map",               id: 0x166},
     {name: "GoldRecord",        id: 0x8D0},
     {name: "GreenRecord",       id: 0x8D1}
+]
+
+OTHER_ITEM_TYPES.each {|item|
+    if(item[:inventory_safe] == nil)
+        item[:inventory_safe] = true
+    end
 }
 
-# Generate lookup tables mapping block IDs to block names and vice versa
-BLOCK_TYPES.each {|block|
-    BLOCKS_BY_ID[block[:id]] = block
-    BLOCKS_BY_NAME[block[:name].to_sym] = block
-    # Blocks are items as well
-    # Add block types to table of item types
-    # TODO: rather than mix the tables like this, add logic to the lookup functions
-    ITEM_TYPES.push(block)
-}
+
+# Blocks are items as well
+# Add block types to table of item types
+# TODO: rather than mix the tables like this, add logic to the lookup functions
+ITEM_TYPES = BLOCK_TYPES + OTHER_ITEM_TYPES
 
 # Generate lookup tables mapping item IDs to item names and vice versa
 ITEM_TYPES.each {|item|
@@ -352,6 +352,14 @@ SHRUB_IDS = {
     Fern:           0x2
 }
 
+# inventory slot numbers:
+# 0-8: equipped inventory (any item)
+# 9-35: main inventory (any item)
+# 80, 81, 82, 83: work area (any item)
+# 103: helmet
+# 102: torso
+# 101: leggings
+# 100: boots
 ARMOR_SLOTS = {
     boots: 100,
     legs: 101,
@@ -360,13 +368,13 @@ ARMOR_SLOTS = {
 }
 
 
-def load_level_dat(worldName)
-    NBT.load(MCPATH + "/saves/" + worldName + "/level.dat")
+def load_level_dat(world_name)
+    NBT.load(MCPATH + "/saves/" + world_name + "/level.dat")
 end
 
-def write_level_dat(level_dat, worldName)
+def write_level_dat(level_dat, world_name)
     # Make backup of old version and write new level.dat
-    level_dat_path = MCPATH + "/saves/" + worldName + "/level.dat"
+    level_dat_path = MCPATH + "/saves/" + world_name + "/level.dat"
     File.rename(level_dat_path, level_dat_path + ".bkp")
     level_dat.write(level_dat_path)
 end
@@ -383,7 +391,7 @@ def get_free_inv_slots(level_dat)
         slot = item[:Slot].value
         count = item[:Count].value
         damage = item[:Damage].value
-        puts "%d of %s in slot %d, damage %d" % [count, ITEMS_BY_ID[itemID][:name], slot, damage]
+        puts "%d of %s in slot %d, damage %d" % [count, ITEMS_BY_ID[id][:name], slot, damage]
         invslots[slot] = false
     }
     
@@ -397,7 +405,7 @@ def get_free_inv_slots(level_dat)
     freeslots
 end
 
-def add_inv_item(level_dat, item_name, damage, count, slot)
+def add_inv_item(level_dat, item_name, count, slot)
     item = nil
     damage = 0
     item_sym = item_name.to_sym
@@ -427,12 +435,12 @@ def add_inv_item(level_dat, item_name, damage, count, slot)
     
     inventory = level_dat[:Data][:Player][:Inventory]
     puts "Adding %d %s to slot %d\n" % [count, item[:name], slot]
-    item = NBT.new_compound("")
-    item.insert(NBT.new_short("id", item[:id]))
-    item.insert(NBT.new_short("Damage", damage))
-    item.insert(NBT.new_byte("Count", count))
-    item.insert(NBT.new_byte("Slot", slot))
-    inventory.value.push(item)
+    item_nbt = NBT.new_compound("")
+    item_nbt.insert(NBT.new_short("id", item[:id]))
+    item_nbt.insert(NBT.new_short("Damage", damage))
+    item_nbt.insert(NBT.new_byte("Count", count))
+    item_nbt.insert(NBT.new_byte("Slot", slot))
+    inventory.value.push(item_nbt)
 end
 
 end # module Magellan

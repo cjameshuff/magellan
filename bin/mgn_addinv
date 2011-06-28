@@ -13,6 +13,14 @@ if(ARGV.length < 2)
     puts "Item and block names are those listed in mcdefs.js"
     puts "If item count is not specified, 1 is assumed."
     puts "Item(s) will be placed in first empty inventory position encountered."
+    puts "Available items:"
+    item_types = []
+    ITEM_TYPES.each {|item|
+        if(item[:inventory_safe])
+            item_types.push(item)
+        end
+    }
+    puts item_types.map{|item| item[:name]}.sort.join(', ')
     exit()
 end
 
@@ -32,6 +40,6 @@ if(freeslots.length == 0)
     exit()
 end
 
-add_inv_item(level_dat, item_name, damage, item_count, freeslots[0])
+add_inv_item(level_dat, item_name, item_count, freeslots[0])
 
 write_level_dat(level_dat, world_name)

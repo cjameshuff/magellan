@@ -4,7 +4,12 @@ Manifest.txt
 README.rdoc
 Rakefile
 bin/magellan
+bin/mgn_addinv
+bin/mgn_ditto
+bin/mgn_dump
+bin/mgn_dumpents
 bin/mgn_dumpinv
+bin/mgn_undamage
 ext/magellan/array2d.h
 ext/magellan/blocktypes.cpp
 ext/magellan/blocktypes.h
