@@ -48,9 +48,12 @@ BLOCK_TYPES = [
     {name: 'BedBlock',     id: 0x1A},
     {name: 'PoweredRail',  id: 0x1B},
     {name: 'DetectorRail', id: 0x1C},
+    {name: 'StickyPiston', id: 0x1D},
     {name: 'Web',          id: 0x1E},
     {name: 'TallGrass',    id: 0x1F},
     {name: 'DeadShrub',    id: 0x20},
+    {name: 'Piston',       id: 0x21},
+    {name: 'PistonHead',   id: 0x22},
     {name: 'Wool',         id: 0x23},
     
     {name: 'YellowFlower',  id: 0x25},
@@ -159,6 +162,7 @@ BLOCK_TYPES.each {|block|
 
 # These blocks can't usefully be put in the inventory
 [
+    :Air,
     :BedBlock,
     :WoodDoorBlock,
     :BurningFurnace,
@@ -172,6 +176,55 @@ BLOCK_TYPES.each {|block|
 BLOCK_TYPES.each {|block|
     if(block[:inventory_safe] == nil)
         block[:inventory_safe] = true
+    end
+}
+
+# These blocks aren't simple cubes
+[
+    :Sapling,
+    :Water,
+    :Lava,
+    :BedBlock,
+    :PoweredRail,
+    :DetectorRail,
+    :Web,
+    :TallGrass,
+    :DeadShrub,
+    :YellowFlower,
+    :RedRose,
+    :BrownMushroom,
+    :RedMushroom,
+    :Slab,
+    :Torch,
+    :Fire,
+    :WoodStairs,
+    :RedstoneWire,
+    :Crops,
+    :SignPost,
+    :WoodDoorBlock,
+    :Ladder,
+    :Rail,
+    :CobblestoneStairs,
+    :WallSign,
+    :Lever,
+    :StonePressurePlate,
+    :IronDoorBlock,
+    :WoodPressurePlate,
+    :RedstoneTorchOff,
+    :RedstoneTorch,
+    :StoneButton,
+    :Cactus,
+    :SugarCaneBlock,
+    :Fence,
+    :CakeBlock,
+    :Trapdoor,
+].each {|item_name|
+    BLOCKS_BY_NAME[item_name.to_sym][:is_model] = true
+}
+
+BLOCK_TYPES.each {|block|
+    if(block[:is_model] == nil)
+        block[:is_model] = false
     end
 }
 
@@ -282,6 +335,7 @@ OTHER_ITEM_TYPES = [
     {name: "Repeater",          id: 0x164},
     {name: "Cookie",            id: 0x165},
     {name: "Map",               id: 0x166},
+    {name: "Shears",            id: 0x167},
     {name: "GoldRecord",        id: 0x8D0},
     {name: "GreenRecord",       id: 0x8D1}
 ]
