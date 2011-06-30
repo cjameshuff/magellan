@@ -31,10 +31,6 @@
 #include <set>
 #include <algorithm>
 
-#include "fileutils.h"
-
-#include "misc.h"
-
 using namespace std;
 
 //******************************************************************************
@@ -167,44 +163,6 @@ MC_World::~MC_World() {
         delete allChunks[j];
 }
 
-// New region format:
-// 8192 byte header:
-// file location for chunk at chunk coordinates (x, z): 4*((x % 32) + (z % 32)*32)
-// Timestamp is 4096 bytes after that point.
-// Location is 3 byte offset in 4096 byte sectors from start of file, and 1 byte length
-// of chunk in 4096 byte sectors.
-// Timestamp is 32-bit big-endian integer, last modification time of chunk.
-//
-// Chunk data begins with 32 bit big endian length field, exact length of remainder of
-// chunk data in bytes.
-// Following this is 1 byte for compression scheme. Only 2 is used in practice, zlib.
-// Following data is chunk with same NBT format as Alpha.
-//
-int MC_World::Load(const std::string & wPath)
-{
-    worldPath = wPath;
-    
-//    cout << "Searching for region files..." << endl;
-    vector<string> filepaths;
-    string dirPath = worldPath + "/region/";
-    cout << "Dir " << dirPath << endl;
-    GetFilePaths(dirPath, filepaths);
-    
-    // Load chunks and compute world size
-    cout << "Loading..." << endl;
-    for(size_t j = 0; j < filepaths.size(); ++j)
-    {
-        cout << "Loading " << filepaths[j] << endl;
-        NBT_gzFile_I fin(filepaths[j]);
-        NBT_TagCompound * nbt = LoadNBT_File(fin);
-        if(nbt)
-            AddChunk(new MC_Chunk(nbt));
-    }
-    cout << "Chunks loaded" << endl;
-    
-    RebuildGrid();
-    return (int)allChunks.size();
-}
 
 void GenerateLevelDat(const std::string & ldPath, int spawnX, int spawnY, int spawnZ)
 {
@@ -233,57 +191,6 @@ void GenerateLevelDat(const std::string & ldPath, int spawnX, int spawnY, int sp
     delete leveldatNBT;
 }
 
-int MC_World::Write(const std::string & wPath)
-{
-    cerr << "Writing world to " << wPath << endl;
-    if(!DirExists(wPath)) {
-        if(FileExists(wPath)) {
-            cerr << wPath << " already exists, but is not a directory" << endl;
-            return -1;
-        }
-        MakeDir(wPath);
-    }
-    string slockPath = wPath + "/session.lock";
-    
-    // Regenerate session lock file
-    FILE * slfile = fopen(slockPath.c_str(), "w");
-    int64_t ts = MC_Timestamp();
-    fwrite(&ts, 1, 8, slfile);
-    fclose(slfile);
-    
-    string ldPath = wPath + "/level.dat";
-    if(!FileExists(ldPath)) {
-        cout << "level.dat not found, will generate" << endl;
-        // TODO: pick a safe spot!
-        GenerateLevelDat(ldPath, 0, 64, 0);
-    }
-    //else { // TODO: set LastPlayed, SizeOnDisk
-    //}
-    
-    for(size_t j = 0; j < allChunks.size(); ++j)
-    {
-        // Chunk grid is indexed from 0, must offset by lowest coordinates
-        int x = allChunks[j]->xPos;
-        int z = allChunks[j]->zPos;
-        int xmod64 = (x < 0) ? ((x % 64) + 64) : (x % 64);
-        int zmod64 = (z < 0) ? ((z % 64) + 64) : (z % 64);
-        string chunkDirPath = worldPath + "/" + chunkDirs[xmod64] + "/" + chunkDirs[zmod64];
-        // file name is c.X.Z.dat
-        string chunkDatPath = chunkDirPath + "/c." + ToBase36(x) + "." + ToBase36(z) + ".dat";
-//        cerr << "Writing chunk to " << chunkDatPath << endl;
-        
-        if(!DirExists(chunkDirPath)) {
-            if(FileExists(chunkDirPath)) {
-                cerr << chunkDirPath << " already exists, but is not a directory" << endl;
-                return -1;
-            }
-            MakeDir(chunkDirPath);
-        }
-        WriteNBT_File(allChunks[j]->GetChunkNBT(), chunkDatPath);
-    }
-    
-    return 0;
-}
 
 void MC_World::AddChunk(MC_Chunk * chunk)
 {

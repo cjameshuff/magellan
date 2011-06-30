@@ -14,13 +14,11 @@ ext/magellan/array2d.h
 ext/magellan/blocktypes.cpp
 ext/magellan/blocktypes.h
 ext/magellan/extconf.rb
-ext/magellan/gen_blockdefs_h.rb
-ext/magellan/fileutils.h
+ext/magellan/gen_blockdefs.rb
 ext/magellan/magellan.cpp
 ext/magellan/magellan.h
 ext/magellan/mc.cpp
 ext/magellan/mc.h
-ext/magellan/misc.h
 ext/magellan/nbt.cpp
 ext/magellan/nbt.h
 ext/magellan/nbtio.cpp
@@ -33,6 +31,7 @@ lib/magellan.rb
 lib/magellan/magellan.bundle
 lib/magellan/mcworld.rb
 lib/magellan/mcentity.rb
+lib/magellan/mcleveldat.rb
 lib/magellan/mcdefs.rb
 lib/magellan/nbt.rb
 test/test_magellan.rb

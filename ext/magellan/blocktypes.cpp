@@ -22,6 +22,7 @@
 //******************************************************************************
 
 #include "blocktypes.h"
+#include "magellan.h"
 
 #include <string>
 #include <vector>
@@ -30,8 +31,6 @@
 #include <map>
 #include <set>
 #include <algorithm>
-
-#include "misc.h"
 
 using namespace std;
 
@@ -42,108 +41,6 @@ using namespace std;
 BlockType blockTypes[256];
 
 static SimpleImage texturesImage;
-
-const std::string kBlockTypeNames[] = {
-    "Air",          // 0x00
-    "Stone",        // 0x01
-    "Grass",        // 0x02
-    "Dirt",         // 0x03
-    "Cobblestone",  // 0x04
-    "Wood",         // 0x05
-    "Sapling",      // 0x06
-    "Bedrock",      // 0x07
-    "Water",        // 0x08
-    "WaterPooled",  // 0x09
-    "Lava",         // 0x0A
-    "LavaPooled",   // 0x0B
-    "Sand",         // 0x0C
-    "Gravel",       // 0x0D
-    "GoldOre",      // 0x0E
-    "IronOre",      // 0x0F
-    
-    "CoalOre",      // 0x10
-    "Log",          // 0x11
-    "Leaves",       // 0x12
-    "Sponge",       // 0x13
-    "Glass",        // 0x14
-    
-    "LapisOre",     // 0x15
-    "LapisBlock",   // 0x16
-    "Dispenser",    // 0x17
-    "Sandstone",    // 0x18
-    "NoteBlock",    // 0x19
-    "AquaGreenCloth", // 0x1A
-    "CyanCloth",    // 0x1B
-    "BlueCloth",    // 0x1C
-    "PurpleCloth",  // 0x1D
-    "IndigoCloth",  // 0x1E
-    "VioletCloth",  // 0x1F
-    "MagentaCloth", // 0x20
-    "PinkCloth",    // 0x21
-    "BlackCloth",   // 0x22
-    "GrayCloth",    // 0x23
-    "WhiteCloth",   // 0x24
-    
-    "YellowFlower", // 0x25
-    "RedRose",      // 0x26
-    "BrownMushroom", // 0x27
-    "RedMushroom",  // 0x28
-    "GoldBlock",    // 0x29
-    "IronBlock",    // 0x2A
-    "DoubleStep",   // 0x2B
-    "Step",         // 0x2C
-    "Brick",        // 0x2D
-    "TNT",          // 0x2E
-    "BookCase",     // 0x2F
-    
-    "MossyCobblestone", // 0x30
-    "Obsidian",     // 0x31
-    "Torch",        // 0x32
-    "Fire",         // 0x33
-    "MobSpawner",   // 0x34
-    "WoodStairs",   // 0x35
-    "Chest",        // 0x36
-    "RedstoneWire", // 0x37
-    "DiamondOre",   // 0x38
-    "DiamondBlock", // 0x39
-    "Workbench",    // 0x3A
-    "Crops",        // 0x3B
-    "Soil",         // 0x3C
-    "Furnace",      // 0x3D
-    "BurningFurnace", // 0x3E
-    "SignPost",     // 0x3F
-    
-    "WoodDoor",     // 0x40
-    "Ladder",       // 0x41
-    "MinecartTrack", // 0x42
-    "CobblestoneStairs", // 0x43
-    "WallSign",     // 0x44
-    "Lever",        // 0x45
-    "StonePressurePlate", // 0x46
-    "IronDoor",     // 0x47
-    "WoodPressurePlate", // 0x48
-    "RedstoneOre", // 0x49
-    "GlowingRedstoneOre", // 0x4A
-    "RedstoneTorchOff", // 0x4B
-    "RedstoneTorchOn", // 0x4C
-    "StoneButton",  // 0x4D
-    "Snow",         // 0x4E
-    "Ice",          // 0x4F
-    
-    "SnowBlock",    // 0x50
-    "Cactus",       // 0x51
-    "Clay",         // 0x52
-    "Reed",         // 0x53
-    "Jukebox",      // 0x54
-    "Fence",        // 0x55
-    "Pumpkin",      // 0x56
-    "Netherstone",  // 0x57
-    "SlowSand",     // 0x58
-    "LightStone",   // 0x59
-    "Portal",       // 0x5A
-    "GlowingPumpkin", // 0x5B
-    "CakeBlock"     // 0x5C
-};
 
 //******************************************************************************
 ScaledTexture::ScaledTexture()
@@ -188,6 +85,12 @@ void LoadTexture(int id, int x, int y, bool isOpaque = true, float tr = 1.0f, fl
     blockTypes[id].isOpaque = isOpaque;
 }
 
+// TODO: Load textures from Ruby instead
+// Texture types:
+// Plain block: Same texture mapped on all sides.
+// Fancy block: Separate texture for each side (furnace, workbench, chest...)
+// Need to specify texture coordinates and orientation for each of 6 faces, and rotate to one of 4 positions.
+// Model: block entities that aren't blocks. Levers, torches, ladders, rails, etc.
 void LoadTextures()
 {
     PNG_FileInfo pngFileInfo;
@@ -210,8 +113,8 @@ void LoadTextures()
     LoadTexture(kBT_Wood, 4, 0);
     LoadTexture(kBT_WoodStairs, 4, 0);// Do something special here?
     // Doublestep side
-    LoadTexture(kBT_DoubleStep, 6, 0);
-    LoadTexture(kBT_Step, 6, 0);
+    LoadTexture(kBT_DoubleSlab, 6, 0);
+    LoadTexture(kBT_Slab, 6, 0);
     LoadTexture(kBT_Brick, 7, 0);
     LoadTexture(kBT_TNT, 8, 0);
     // 9, 0: TNT kaboom
@@ -284,7 +187,7 @@ void LoadTextures()
     //LoadTexture(kBT_, 6, 4);// cactus side
     //LoadTexture(kBT_, 7, 4);// cactus slice top/bottom
     LoadTexture(kBT_Clay, 8, 4);
-    LoadTexture(kBT_Reed, 9, 4, false);
+    LoadTexture(kBT_SugarCaneBlock, 9, 4, false);
     LoadTexture(kBT_NoteBlock, 10, 4);// 
     LoadTexture(kBT_Jukebox, 11, 4);// jukebox top
     //LoadTexture(kBT_, 12, 4);// unused
@@ -293,14 +196,14 @@ void LoadTextures()
     //LoadTexture(kBT_, 15, 4);// unused
     
     LoadTexture(kBT_Torch, 0, 5, false);
-    LoadTexture(kBT_WoodDoor, 1, 5, false);
-    LoadTexture(kBT_IronDoor, 2, 5, false);
+    LoadTexture(kBT_WoodDoorBlock, 1, 5, false);
+    LoadTexture(kBT_IronDoorBlock, 2, 5, false);
     LoadTexture(kBT_Ladder, 3, 5, false);
     LoadTexture(kBT_Soil, 6, 5);
     LoadTexture(kBT_Crops, 15, 5, false);
     
     LoadTexture(kBT_Lever, 0, 6, false);
-    LoadTexture(kBT_RedstoneTorchOn, 3, 6, false);
+    LoadTexture(kBT_RedstoneTorch, 3, 6, false);
     LoadTexture(kBT_RedstoneWire, 4, 6, false);// Need to do more intelligent redstone rendering
     //LoadTexture(kBT_, 5, 6);// redstone wire, one way
     //LoadTexture(kBT_, 6, 6);// Pumpkin top
@@ -315,7 +218,7 @@ void LoadTextures()
     LoadTexture(kBT_Pumpkin, 7, 7);// Pumpkin face
     LoadTexture(kBT_GlowingPumpkin, 8, 7);
     
-    LoadTexture(kBT_MinecartTrack, 0, 8, false);
+    LoadTexture(kBT_Rail, 0, 8, false);
     LoadTexture(kBT_CakeBlock, 12, 8, false);
     
     LoadTexture(kBT_LapisBlock, 0, 9);

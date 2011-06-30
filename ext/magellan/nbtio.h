@@ -296,6 +296,9 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
         return chunkBlocks[idx].start > 0 && chunkBlocks[idx].size > 0;
     }
     
+    int ChunkStart(int cx, int cz) const {return chunkBlocks[ChunkIdx(cx, cz)].start;}
+    int ChunkSize(int cx, int cz) const {return chunkBlocks[ChunkIdx(cx, cz)].size;}
+    
     bool ChunkLoaded(int cx, int cz) const {return chunkX == cx && chunkZ == cz;}
     
     // Performs write of buffered chunk

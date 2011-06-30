@@ -103,26 +103,26 @@ end
 
 class MC_Torch
     # block data value is direction
-    DIRS = {:s: 1, :n: 2, :w: 3, :e: 4, :floor: 5}
+    DIRS = {s: 1, n: 2, w: 3, e: 4, floor: 5}
 end
 
 class MC_Rail
     # block data value is direction
     DIRS = {
-        :ew: 0, :ns: 1, # flat
-        :as: 2, :an: 3, :ae: 4, :aw: 5, # ascending in a cardinal direction
-        :ne: 6, :se: 7, :sw: 8, :nw: 9 # curved
+        ew: 0, ns: 1, # flat
+        as: 2, an: 3, ae: 4, aw: 5, # ascending in a cardinal direction
+        ne: 6, se: 7, sw: 8, nw: 9 # curved
     }
 end
 
 class MC_Ladder
     # block data value is direction
-    DIRS = {:e: 2, :w: 3, :n: 4, :s: 5}
+    DIRS = {e: 2, w: 3, n: 4, s: 5}
 end
 
 class MC_Stairs
     # block data value is ascending direction
-    DIRS = {:s: 0, :n: 1, :w: 2, :e: 3}
+    DIRS = {s: 0, n: 1, w: 2, e: 3}
 end
 
 class MC_Furnace
@@ -131,7 +131,7 @@ class MC_Furnace
     # TAG_Short("BurnTime")
     # TAG_Short("CookTime")
     # TAG_List("Items")
-    DIRS = {:e: 2, :w: 3, :n: 4, :s: 5}
+    DIRS = {e: 2, w: 3, n: 4, s: 5}
 end
 class MC_Dispenser
     # block data value is direction
@@ -160,17 +160,17 @@ end
 
 class MC_Pumpkin
     # block data value is direction
-    DIRS = {:e: 0, :s: 1, :w: 2, :n: 3}
+    DIRS = {e: 0, s: 1, w: 2, n: 3}
 end
 
 class MC_SignPost
     # block data value is direction
     # tile entity contains Text1..Text4
     DIRS = {
-        :w:  0, :wnw:  1, :nw:  2, :nnw: 3,
-        :n:  4, :nne:  5, :ne:  6, :ene: 7,
-        :e:  8, :ese:  9, :se: 10, :sse: 11,
-        :s: 12, :ssw: 13, :sw: 14, :wsw: 15
+        w:  0, wnw:  1, nw:  2, nnw: 3,
+        n:  4, nne:  5, ne:  6, ene: 7,
+        e:  8, ese:  9, se: 10, sse: 11,
+        s: 12, ssw: 13, sw: 14, wsw: 15
     }
     def initialize(coords, dir, text1, text2 = "", text3 = "", text4 = "")
         super(coords, "Sign")
@@ -183,7 +183,7 @@ class MC_SignPost
     
     # Actually insert into world
     def place(world)
-        chunk = world.get_chunk_nbt(@coords[0], @coords[2])
+        chunk = world.get_chunk(@coords[0], @coords[2])
         entity = NBT.new_compound()
         entity.insert(NBT.new_string("id", id))
         entity.insert(NBT.new_integer("x", x))
@@ -191,7 +191,7 @@ class MC_SignPost
         entity.insert(NBT.new_integer("z", z))
         
         # FIXME: check for existing entity at this location
-        chunk[:Level][:TileEntities].value.push(entity)
+        chunk[:nbt][:Level][:TileEntities].value.push(entity)
         
         world.set_block(@coords[0], @coords[1], @coords[2], BLOCK_IDS[:SignPost], @dir, 0, 0)
         signNBT = new_nbt()

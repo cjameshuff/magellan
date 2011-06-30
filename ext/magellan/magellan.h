@@ -32,6 +32,17 @@
 
 #include <string>
 
+inline std::string MCPath()
+{
+	std::string mcpath = getenv("HOME");
+#ifdef MACOSX
+	mcpath += "/Library/Application Support/minecraft";
+#else
+	mcpath += "/.minecraft";
+#endif // MACOSX
+    return mcpath;
+}
+
 enum {
     kLightingAltitude,
     kLightingAltitudeGray,

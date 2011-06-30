@@ -48,8 +48,6 @@
 #include "blockdefs.h"
 #include "magellan.h"
 
-#include "misc.h"
-
 
 using namespace std;
 
@@ -116,6 +114,24 @@ static VALUE MCRegion_chunk_exists(VALUE self, VALUE rb_x, VALUE rb_z) {
         return Qtrue;
     else
         return Qfalse;
+}
+
+static VALUE MCRegion_chunk_start(VALUE self, VALUE rb_x, VALUE rb_z) {
+    NBT_Region_IO * rgn = GetMCRegion(self);
+    int x = NUM2INT(rb_x), z = NUM2INT(rb_z);
+    if(rgn->ChunkExists(x, z))
+        return INT2NUM(rgn->ChunkStart(x, z));
+    else
+        return Qnil;
+}
+
+static VALUE MCRegion_chunk_size(VALUE self, VALUE rb_x, VALUE rb_z) {
+    NBT_Region_IO * rgn = GetMCRegion(self);
+    int x = NUM2INT(rb_x), z = NUM2INT(rb_z);
+    if(rgn->ChunkExists(x, z))
+        return INT2NUM(rgn->ChunkSize(x, z));
+    else
+        return Qnil;
 }
 
 static VALUE MCRegion_read_chunk_nbt(VALUE self, VALUE rb_x, VALUE rb_z) {
@@ -210,6 +226,8 @@ extern "C" void Init_magellan()
     rb_define_method(class_MCRegion, "printstats", RUBY_METHOD_FUNC(MCRegion_stats), 0);
     
     rb_define_method(class_MCRegion, "chunk_exists", RUBY_METHOD_FUNC(MCRegion_chunk_exists), 2);
+    rb_define_method(class_MCRegion, "chunk_start", RUBY_METHOD_FUNC(MCRegion_chunk_exists), 2);
+    rb_define_method(class_MCRegion, "chunk_size", RUBY_METHOD_FUNC(MCRegion_chunk_exists), 2);
     rb_define_method(class_MCRegion, "read_chunk_nbt", RUBY_METHOD_FUNC(MCRegion_read_chunk_nbt), 2);
     rb_define_method(class_MCRegion, "write_chunk_nbt", RUBY_METHOD_FUNC(MCRegion_write_chunk_nbt), 2);
     
@@ -296,12 +314,12 @@ void ComputeStats(const MagellanOptions & opts)
     
     size_t maxLength = 0;
     for(int j = 0; j < kNumBlockTypes; ++j)
-        maxLength = max(maxLength, kBlockTypeNames[j].length());
+        maxLength = max(maxLength, blockdefs[j].name.length());
     
     cout << "\n\nBlock types:" << endl;
     for(int j = 0; j < kNumBlockTypes; ++j)
-        cout << string(maxLength + 1 - kBlockTypeNames[j].length(), ' ')
-             << kBlockTypeNames[j] << ": "
+        cout << string(maxLength + 1 - blockdefs[j].name.length(), ' ')
+             << blockdefs[j].name << ": "
              << stats.blockCounts[j] << endl;
 }
 
@@ -330,7 +348,7 @@ void RenderBlock(SimpleImage & outputImage, int scale, uint8_t type, int x, int 
         SimpleImage * blockTex = blockTypes[type].texture[kTextureScaleMap[scale]];
         if(blockTex == NULL) {
             if(type != kBT_Air)
-                cerr << "No texture for block type " << (int)type << " (" << kBlockTypeNames[type] << ")" << endl;
+                cerr << "No texture for block type " << (int)type << " (" << blockdefs[type].name << ")" << endl;
             return;
         }
         // Chunk coordinates are in world space chunk units, convert to block units

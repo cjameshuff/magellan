@@ -2,7 +2,6 @@
 module Magellan
 # http://www.minecraftwiki.net/wiki/Data_values
 
-
 # A map from integers < 72 to base36 strings, used for putting chunks in the
 # right directories or for scanning through a world's chunk files.
 # Only relevant for old Alpha maps
@@ -441,6 +440,10 @@ def add_inv_item(level_dat, item_name, count, slot)
     item_nbt.insert(NBT.new_byte("Count", count))
     item_nbt.insert(NBT.new_byte("Slot", slot))
     inventory.value.push(item_nbt)
+end
+
+def get_texture_files()
+    `jar -xf #{MCPATH}/bin/minecraft.jar terrain.png misc/grasscolor.png misc/foliagecolor.png`
 end
 
 end # module Magellan

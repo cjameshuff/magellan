@@ -143,7 +143,7 @@ int NBT_Region_IO::ReadRegionTOC()
         if(chunkBlocks[j].start == 0)
             ++empty;
     }
-    cout << empty << " chunks are empty" << endl;
+//    cout << empty << " chunks are empty" << endl;
     fread(buf, 4096, 1, regFile);
     for(int j = 0; j < 1024; ++j)
         chunkTimestamps[j] = (buf[j] << 24) | (buf[j + 1] << 16) | (buf[j + 2] << 8) | buf[j + 3];

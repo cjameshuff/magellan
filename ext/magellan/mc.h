@@ -155,6 +155,9 @@ static bool IdxGood(int32_t idx) {return idx > 0 && idx < (16*16*128);}
 };
 
 
+// TODO:
+// Either remove this, replace with an interface wrapping a Ruby MC_World, or
+// turn the Ruby API into a wrapper for it.
 class MC_World {
   protected:
     std::string worldPath;
@@ -178,12 +181,12 @@ class MC_World {
     // May be used to load chunks from multiple worlds, if the chunk locations do not
     // overlap.
     // TODO: load subset of a world, with coordinate offset.
-    int Load(const std::string & wPath);
+//    int Load(const std::string & wPath);
     
     // Save a minecraft world
     // wPath: path of directory to save world under
     // returns 0 on success, -1 on failure
-    int Write(const std::string & wPath);
+    // int Write(const std::string & wPath);
     
     // AddChunk() only adds a chunk to allChunks and recomputes the map dimensions.
     // If chunks are added to the map, RebuildGrid() must be called to recompute
