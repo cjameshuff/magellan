@@ -38,7 +38,7 @@ blockdefs_h.puts ''
 # Generate source file
 blockdefs_cpp = File.new("blockdefs.cpp", "w")
 
-blockdefs_h.puts generator_msg
+blockdefs_cpp.puts generator_msg
 blockdefs_cpp.puts '#include "blockdefs.h"'
 blockdefs_cpp.puts ''
 blockdefs_cpp.puts 'BlockInfo blockdefs[256] = {'
