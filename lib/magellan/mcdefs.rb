@@ -111,7 +111,7 @@ BLOCK_TYPES = [
     {name: 'Pumpkin',        id: 0x56},
     {name: 'Netherstone',    id: 0x57},
     {name: 'SlowSand',       id: 0x58},
-    {name: 'LightStone',     id: 0x59},
+    {name: 'Glowstone',      id: 0x59},
     {name: 'Portal',         id: 0x5A},
     {name: 'GlowingPumpkin', id: 0x5B},
     {name: 'CakeBlock',      id: 0x5C},
@@ -123,6 +123,26 @@ BLOCK_TYPES = [
 BLOCK_TYPES.each {|block|
     BLOCKS_BY_ID[block[:id]] = block
     BLOCKS_BY_NAME[block[:name].to_sym] = block
+}
+
+# These blocks can emit light
+BLOCKS_BY_NAME[:Fire][:light] = 15
+BLOCKS_BY_NAME[:GlowingPumpkin][:light] = 15
+BLOCKS_BY_NAME[:Lava][:light] = 15
+BLOCKS_BY_NAME[:LavaPooled][:light] = 15
+BLOCKS_BY_NAME[:Glowstone][:light] = 15
+BLOCKS_BY_NAME[:Torch][:light] = 14
+BLOCKS_BY_NAME[:BurningFurnace][:light] = 13
+BLOCKS_BY_NAME[:Portal][:light] = 111
+BLOCKS_BY_NAME[:GlowingRedstoneOre][:light] = 9
+BLOCKS_BY_NAME[:Repeater][:light] = 9 # when active
+BLOCKS_BY_NAME[:RedstoneTorch][:light] = 7
+BLOCKS_BY_NAME[:BrownMushroom][:light] = 1
+
+BLOCK_TYPES.each {|block|
+    if(block[:light] == nil)
+        block[:light] = 0
+    end
 }
 
 # These blocks are fully transparent
@@ -147,11 +167,12 @@ BLOCK_TYPES.each {|block|
 # These blocks are partially transparent
 [
     :Water,
+    :Ice,
     :WaterPooled,
     :Leaves,
     :Trapdoor
 ].each {|item_name|
-    BLOCKS_BY_NAME[item_name.to_sym][:opacity] = 1
+    BLOCKS_BY_NAME[item_name.to_sym][:opacity] = 2
 }
 
 BLOCK_TYPES.each {|block|
