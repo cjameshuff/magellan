@@ -1,1 +1,5 @@
 lib/magellan/magellan.bundle
+ext/magellan/blockdefs.cpp
+ext/magellan/blockdefs.h
+pkg/**/*
+tmp/**/*
