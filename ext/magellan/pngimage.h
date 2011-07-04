@@ -34,6 +34,7 @@
 #include <stdint.h>
 
 #include <png.h>
+#include <zlib.h>
 #include "simpleimage.h"
 
 

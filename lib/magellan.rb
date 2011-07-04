@@ -2,7 +2,7 @@
 require 'magellan/magellan'
 require 'magellan/nbt'
 require 'magellan/mcdefs'
-require 'magellan/world'
+require 'magellan/mcworld'
 require 'magellan/mcentity'
 require 'magellan/mcleveldat'
 
