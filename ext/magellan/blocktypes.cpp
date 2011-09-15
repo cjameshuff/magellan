@@ -209,7 +209,7 @@ void LoadTextures()
     //LoadTexture(kBT_, 6, 6);// Pumpkin top
     LoadTexture(kBT_Netherstone, 7, 6);
     LoadTexture(kBT_SlowSand, 8, 6);
-    LoadTexture(kBT_LightStone, 9, 6);
+    LoadTexture(kBT_Glowstone, 9, 6);
     
     LoadTexture(kBT_RedstoneTorchOff, 3, 7, false);
     //LoadTexture(kBT_, 4, 7);// Dark bark

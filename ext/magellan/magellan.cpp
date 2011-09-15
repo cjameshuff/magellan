@@ -139,7 +139,11 @@ static VALUE MCRegion_read_chunk_nbt(VALUE self, VALUE rb_x, VALUE rb_z) {
     if(rgn->ReadChunk(NUM2INT(rb_x), NUM2INT(rb_z)) != 0)
         return Qnil;
     
+    // cout << "GetChunkSize(): " << rgn->GetChunkSize() << endl;
+    // cout << "RW_Ptr(): " << rgn->RW_Ptr() << endl;
     NBT_TagCompound * nbt = LoadNBT_File(*rgn);
+    // cout << "RW_Ptr(): " << rgn->RW_Ptr() << endl;
+    // nbt->Print(cout);
     VALUE rbnbt = NBT_CompoundToValue(nbt);
     delete nbt;
     return rbnbt;

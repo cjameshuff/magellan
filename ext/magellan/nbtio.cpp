@@ -401,13 +401,15 @@ int NBT_Region_IO::ReadChunk(int cx, int cz)
     status = inflate(&strm, Z_FINISH);
     inflateEnd(&strm);
     
+    rwPtr = 0;
+    // chunkBytes = strm.avail_out;
+    chunkBytes = strm.total_out;
+    
     if(status != Z_STREAM_END) {
         std::cerr << "Error while decompressing" << std::endl;
+        chunkBytes = 0;
         return -1;
     }
-    
-    rwPtr = 0;
-    chunkBytes = strm.avail_out;
     
     return 0;
 }

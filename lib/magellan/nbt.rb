@@ -54,7 +54,7 @@ class NBT
     @@printindent = 0
     def to_s()
         if(@type == NBT::TAG_BYTE_ARRAY)
-            "  "*@@printindent + "#{@name}: <BYTE_ARRAY>"
+            "  "*@@printindent + "#{@name}: <BYTE_ARRAY>[#{@value.length}]"
         elsif(@type == NBT::TAG_COMPOUND)
             @@printindent += 1
             contstr = @value.map {|v| v[1].to_s}.join(",\n")

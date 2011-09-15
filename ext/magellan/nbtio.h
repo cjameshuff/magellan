@@ -330,6 +330,8 @@ class NBT_Region_IO: public NBT_I, public NBT_O {
         // and go sequentially from there.
     }
     
+    virtual size_t RW_Ptr() {return rwPtr;}
+    
     virtual bool Eof() {return rwPtr >= chunkBytes;}
 };
 

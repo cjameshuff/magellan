@@ -10,10 +10,10 @@ class MC_LevelDat
     
     def initialize(opts = {})
         if(opts[:world_dir] != nil)
-            @level_dat_nbt = NBT.load("#{opts[:world_dir]}/level.dat");
+            @level_dat_nbt = NBT.load("#{opts[:world_dir]}/level.dat")
             @player = MC_Player.new({nbt: @level_dat_nbt[:Player]})
         elsif(opts[:world_name] != nil)
-            @level_dat_nbt = NBT.load("#{MCPATH}/saves/#{opts[:world_name]}/level.dat");
+            @level_dat_nbt = NBT.load("#{MCPATH}/saves/#{opts[:world_name]}/level.dat")
             @player = MC_Player.new({nbt: @level_dat_nbt[:Player]})
         elsif(opts[:nbt] != nil)
             # initialize from existing NBT
@@ -280,14 +280,14 @@ class MC_Player
             count = item[:Count].value
             damage = item[:Damage].value
             #puts "%d of %s in slot %d, damage %d" % [count, ITEM_NAMES[id], slot, damage]
-            invslots.delete(slot);
+            invslots.delete(slot)
         }
         invslots
     end
     
     def add_inv_item(level_dat, itemID, damage, count, slot)
         puts "Adding %d %s to slot %d\n" % [count, ITEM_NAMES[itemID], slot]
-        item = NBT.new_compound("");
+        item = NBT.new_compound("")
         item.insert(NBT.new_short("id", itemID))
         item.insert(NBT.new_short("Damage", damage))
         item.insert(NBT.new_byte("Count", count))

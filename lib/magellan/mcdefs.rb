@@ -16,6 +16,7 @@ CHUNK_DIRS = [
 BLOCKS_BY_ID = {}
 BLOCKS_BY_NAME = {}
 
+# Note that some block types have different item types. Redstone repeaters, for example.
 BLOCK_TYPES = [
     {name: 'Air',          id: 0x00},
     {name: 'Stone',        id: 0x01},
@@ -102,21 +103,36 @@ BLOCK_TYPES = [
     {name: 'Snow',               id: 0x4E},
     {name: 'Ice',                id: 0x4F},
     
-    {name: 'SnowBlock',      id: 0x50},
-    {name: 'Cactus',         id: 0x51},
-    {name: 'Clay',           id: 0x52},
-    {name: 'SugarCaneBlock', id: 0x53},
-    {name: 'Jukebox',        id: 0x54},
-    {name: 'Fence',          id: 0x55},
-    {name: 'Pumpkin',        id: 0x56},
-    {name: 'Netherstone',    id: 0x57},
-    {name: 'SlowSand',       id: 0x58},
-    {name: 'Glowstone',      id: 0x59},
-    {name: 'Portal',         id: 0x5A},
-    {name: 'GlowingPumpkin', id: 0x5B},
-    {name: 'CakeBlock',      id: 0x5C},
-    {name: 'LockedChest',    id: 0x5F},
-    {name: 'Trapdoor',       id: 0x60}
+    {name: 'SnowBlock',        id: 0x50},
+    {name: 'Cactus',           id: 0x51},
+    {name: 'Clay',             id: 0x52},
+    {name: 'SugarCaneBlock',   id: 0x53},
+    {name: 'Jukebox',          id: 0x54},
+    {name: 'Fence',            id: 0x55},
+    {name: 'Pumpkin',          id: 0x56},
+    {name: 'Netherstone',      id: 0x57},
+    {name: 'SlowSand',         id: 0x58},
+    {name: 'Glowstone',        id: 0x59},
+    {name: 'Portal',           id: 0x5A},
+    {name: 'GlowingPumpkin',   id: 0x5B},
+    {name: 'CakeBlock',        id: 0x5C},
+    {name: 'RepeaterBlockOff', id: 0x5D},
+    {name: 'RepeaterBlock',    id: 0x5E},
+    {name: 'LockedChest',      id: 0x5F},
+    {name: 'Trapdoor',         id: 0x60},
+    {name: 'SilverfishNest',   id: 0x61},
+    {name: 'StoneBrick',       id: 0x62},
+    {name: 'GiantRedMushroom', id: 0x63},
+    {name: 'GiantBrownMushroom', id: 0x64},
+    {name: 'IronBars',         id: 0x65},
+    {name: 'GlassPane',        id: 0x66},
+    {name: 'Melon',            id: 0x67},
+    {name: 'PumpkinStem',      id: 0x68},
+    {name: 'MelonStem',        id: 0x69},
+    {name: 'Vines',            id: 0x6A},
+    {name: 'FenceGate',        id: 0x6B},
+    {name: 'BrickStairs',      id: 0x6C},
+    {name: 'StoneBrickStairs', id: 0x6D}
 ]
 
 # Generate lookup tables mapping block IDs to block names and vice versa
@@ -133,9 +149,9 @@ BLOCKS_BY_NAME[:LavaPooled][:light] = 15
 BLOCKS_BY_NAME[:Glowstone][:light] = 15
 BLOCKS_BY_NAME[:Torch][:light] = 14
 BLOCKS_BY_NAME[:BurningFurnace][:light] = 13
-BLOCKS_BY_NAME[:Portal][:light] = 111
+BLOCKS_BY_NAME[:Portal][:light] = 11
 BLOCKS_BY_NAME[:GlowingRedstoneOre][:light] = 9
-BLOCKS_BY_NAME[:Repeater][:light] = 9 # when active
+BLOCKS_BY_NAME[:RepeaterBlock][:light] = 9
 BLOCKS_BY_NAME[:RedstoneTorch][:light] = 7
 BLOCKS_BY_NAME[:BrownMushroom][:light] = 1
 
@@ -155,13 +171,20 @@ BLOCK_TYPES.each {|block|
     :DeadShrub,
     :Fire,
     :Torch,
+    :WoodDoorBlock,
     :SignPost,
     :WallSign,
     :Lever,
     :Fence,
-    :Portal
+    :Portal,
+    :IronBars,
+    :GlassPane,
+    :PumpkinStem,
+    :MelonStem,
+    :Vines,
+    :FenceGate
 ].each {|item_name|
-    BLOCKS_BY_NAME[item_name.to_sym][:opacity] = 0
+    BLOCKS_BY_NAME[item_name][:opacity] = 0
 }
 
 # These blocks are partially transparent
@@ -172,9 +195,10 @@ BLOCK_TYPES.each {|block|
     :Leaves,
     :Trapdoor
 ].each {|item_name|
-    BLOCKS_BY_NAME[item_name.to_sym][:opacity] = 2
+    BLOCKS_BY_NAME[item_name][:opacity] = 2
 }
 
+# All other blocks are opaque
 BLOCK_TYPES.each {|block|
     if(block[:opacity] == nil)
         block[:opacity] = 15
@@ -218,6 +242,7 @@ BLOCK_TYPES.each {|block|
     :Slab,
     :Torch,
     :Fire,
+    :Chest,
     :WoodStairs,
     :RedstoneWire,
     :Crops,
@@ -239,6 +264,14 @@ BLOCK_TYPES.each {|block|
     :Fence,
     :CakeBlock,
     :Trapdoor,
+    :IronBars,
+    :GlassPane,
+    :PumpkinStem,
+    :MelonStem,
+    :Vines,
+    :FenceGate,
+    :BrickStairs,
+    :StoneBrickStairs
 ].each {|item_name|
     BLOCKS_BY_NAME[item_name.to_sym][:is_model] = true
 }
@@ -308,7 +341,7 @@ OTHER_ITEM_TYPES = [
     {name: "IronLeggings",      id: 0x134},
     {name: "IronBoots",         id: 0x135},
     {name: "DiamondHelmet",     id: 0x136},
-    {name: "DiamondChestplate",     id: 0x137},
+    {name: "DiamondChestplate", id: 0x137},
     {name: "DiamondLeggings",   id: 0x138},
     {name: "DiamondBoots",      id: 0x139},
     {name: "GoldHelmet",        id: 0x13A},
@@ -321,7 +354,7 @@ OTHER_ITEM_TYPES = [
     {name: "Painting",          id: 0x141},
     {name: "GoldenApple",       id: 0x142},
     {name: "Sign",              id: 0x143},
-    {name: "WoodenDoor",        id: 0x144},
+    {name: "WoodDoor",          id: 0x144},
     {name: "Bucket",            id: 0x145},
     {name: "WaterBucket",       id: 0x146},
     {name: "LavaBucket",        id: 0x147},
@@ -357,6 +390,15 @@ OTHER_ITEM_TYPES = [
     {name: "Cookie",            id: 0x165},
     {name: "Map",               id: 0x166},
     {name: "Shears",            id: 0x167},
+    {name: "MelonSlice",        id: 0x168},
+    {name: "PumpkinSeeds",      id: 0x169},
+    {name: "MelonSeeds",        id: 0x16A},
+    {name: "RawBeef",           id: 0x16B},
+    {name: "Steak",             id: 0x16C},
+    {name: "RawChicken",        id: 0x16D},
+    {name: "CookedChicken",     id: 0x16E},
+    {name: "RottenFlesh",       id: 0x16F},
+    {name: "EnderPearl",        id: 0x170},
     {name: "GoldRecord",        id: 0x8D0},
     {name: "GreenRecord",       id: 0x8D1}
 ]
@@ -420,6 +462,12 @@ FUEL_IDS = {
     Charcoal:  0x1
 }
 
+STONE_BRICK_IDS = {
+    Normal: 0x0,
+    Mossy:  0x1,
+    Cracked:  0x2
+}
+
 SHRUB_IDS = {
     DeadShrubGrass: 0x0, # Identical in appearance to DeadShrub, but acts like tall grass
     TallGrass:      0x1,
@@ -441,7 +489,6 @@ ARMOR_SLOTS = {
     helmet: 103,
 }
 
-
 def load_level_dat(world_name)
     NBT.load(MCPATH + "/saves/" + world_name + "/level.dat")
 end
@@ -460,12 +507,14 @@ def get_free_inv_slots(level_dat)
     (0..35).each {|i| invslots[i] = true}
     
     inventory = level_dat[:Data][:Player][:Inventory]
-    inventory.value.each {|item|
-        id = item[:id].value
-        slot = item[:Slot].value
-        count = item[:Count].value
-        damage = item[:Damage].value
-        puts "%d of %s in slot %d, damage %d" % [count, ITEMS_BY_ID[id][:name], slot, damage]
+    inventory.value.each {|item_nbt|
+        id = item_nbt[:id].value
+        slot = item_nbt[:Slot].value
+        count = item_nbt[:Count].value
+        damage = item_nbt[:Damage].value
+        item = ITEMS_BY_ID[id]
+        item_name = (item)? item[:name] : "Unknown item type: #{id}"
+        puts "%d of %s in slot %d, damage %d" % [count, item_name, slot, damage]
         invslots[slot] = false
     }
     

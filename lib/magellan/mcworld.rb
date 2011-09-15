@@ -6,9 +6,14 @@ require 'magellan/mcleveldat'
 
 module Magellan
 
-# The MC_World class manages the various regions and chunks a Minecraft world
+# The MC_World class manages the heirarchy of regions and chunks a Minecraft world
 # is composed of, and provides facilities for editing and creating such worlds.
-
+# 
+# Chunks are segments of the world consisting of 16x16 columns of (currently)
+# 128 blocks, the block types and other data being held in arrays.
+# Regions are larger segments of the world, 32x32 chunks in size, some of which may
+# be empty.
+# 
 # Chunks do not have a full class at this time, they are simple hashes:
 # chunk = {
 #     region: region,
@@ -20,11 +25,11 @@ module Magellan
 #     accessed: incrementing integer
 # }
 
-
+# Region-relative coordinates of the chunks contained within the region
 CHUNK_COORDS = (0..31).to_a.product((0..31).to_a)
 
 class MC_World
-    attr_reader :level_dat, :world_dir, :world_name
+    attr_reader :level_dat, :world_dir, :world_name, :all_regions
     
     def initialize(opts = {})
         # @gen_chunks = opts.fetch(:gen_chunks, true)
@@ -40,15 +45,17 @@ class MC_World
     def load_world(world_dir)
         @world_dir = world_dir
         @world_name = world_dir.split('/')[-1]
-        regionFiles = Dir.entries("#{@world_dir}/region")
-        regionFiles.delete('.')
-        regionFiles.delete('..')
+        region_files = Dir.glob("#{@world_dir}/region/r.*.mcr")
+        # region_files = Dir.entries("#{@world_dir}/region")
+        # region_files.delete('.')
+        # region_files.delete('..')
         
-        regionFiles.each {|fin|
+        region_files.each {|fin|
             # Extract coordinates from file name. File name format is r.X.Y.mcr
             coords = fin.split('.')[1, 2]
             region = MCRegion.new
-            if(region.open("#{@world_dir}/region/#{fin}") == 0)
+            if(region.open(fin) == 0)
+            # if(region.open("#{@world_dir}/region/#{fin}") == 0)
                 @all_regions[coords] = region
             end
         }
@@ -98,19 +105,11 @@ class MC_World
     end
 
     def each_entity_nbt(fn)
-        each_chunk_nbt {|chunk|
-            level = chunk[:Level]
-            entities = level[:Entities].value
-            entities.each {|ent| yield(ent)}
-        }
+        each_chunk {|chunk| chunk[:entities].each {|ent| yield(ent)}}
     end
 
     def each_tile_entity_nbt(fn)
-        each_chunk_nbt {|chunk|
-            level = chunk[:Level]
-            entities = level[:TileEntities].value
-            entities.each {|ent| yield(ent)}
-        }
+        each_chunk {|chunk| chunk[:tile_entities].each {|ent| yield(ent)}}
     end
     
     def get_stats()
@@ -163,13 +162,16 @@ class MC_World
             end
         end
         
-        if(chunk_nbt != nil)
+        if(chunk_nbt)
+            level = chunk_nbt[:Level]
             chunk = {
                 region: region,
                 region_coords: [region_chunk_x, region_chunk_z],
                 nbt: chunk_nbt,
-                blocks: chunk_nbt[:Level][:Blocks].value,
-                block_data: chunk_nbt[:Level][:Data].value,
+                blocks: level[:Blocks].value,
+                block_data: level[:Data].value,
+                entities: level[:Entities].value,
+                tile_entities: level[:TileEntities].value,
                 dirty: false,
                 accessed: 0
             }
