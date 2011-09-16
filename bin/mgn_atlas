@@ -1,0 +1,282 @@
+#!/usr/bin/env ruby
+
+require 'pp'
+require 'magellan'
+require 'magellan/mcdefs'
+require 'magellan/mcworld'
+require 'RMagick'
+
+include Magellan
+include Magick
+
+if(ARGV.length < 1)
+    puts "mgn_getmaps usage:"
+    puts "\tmgn_getmaps WORLD"
+    exit()
+end
+
+
+world = MC_World.new({world_name: ARGV[0]})
+
+$signposts = []
+$spawners = []
+$silverfish = []
+$chests = []
+$villages = []
+$mossycobble = []
+world.all_regions.each {|coord, rgn|
+    CHUNK_COORDS.each {|chunkcoord|
+        if(rgn.chunk_exists(chunkcoord[0], chunkcoord[1]))
+            chunk_nbt = rgn.read_chunk_nbt(chunkcoord[0], chunkcoord[1])
+            level = chunk_nbt[:Level]
+            blocks = level[:Blocks]
+            x_pos = level[:xPos].value
+            z_pos = level[:zPos].value
+            tileEntities = level[:TileEntities].value
+            tileEntities.each {|ent|
+                # puts ent[:id]
+                if(ent[:id].value == "Sign")
+                    $signposts.push(ent)
+                elsif(ent[:id].value == "MobSpawner")
+                    $spawners.push(ent)
+                elsif(ent[:id].value == "Chest")
+                    $chests.push(ent)
+                end
+            }
+            
+            if(blocks.value.include?(BLOCKS_BY_NAME[:SilverfishNest][:id].chr))
+                blocks.value.bytes.with_index {|b, i|
+                    if(b == BLOCKS_BY_NAME[:SilverfishNest][:id])
+                        # bidx = ((x & 15)*16 + (z & 15))*128 + y
+                        y = i % 128
+                        i = (i - y)/128
+                        z = i % 16
+                        x = (i - z)/16
+                        $silverfish.push([x_pos*16 + x, y, z_pos*16 + z])
+                    end
+                }
+            end
+            if(blocks.value.include?(BLOCKS_BY_NAME[:WoodStairs][:id].chr))
+                blocks.value.bytes.with_index {|b, i|
+                    if(b == BLOCKS_BY_NAME[:WoodStairs][:id])
+                        # bidx = ((x & 15)*16 + (z & 15))*128 + y
+                        y = i % 128
+                        i = (i - y)/128
+                        z = i % 16
+                        x = (i - z)/16
+                        $villages.push([x_pos*16 + x, y, z_pos*16 + z])
+                    end
+                }
+            end
+            if(blocks.value.include?(BLOCKS_BY_NAME[:MossyCobblestone][:id].chr))
+                blocks.value.bytes.with_index {|b, i|
+                    if(b == BLOCKS_BY_NAME[:MossyCobblestone][:id])
+                        # bidx = ((x & 15)*16 + (z & 15))*128 + y
+                        y = i % 128
+                        i = (i - y)/128
+                        z = i % 16
+                        x = (i - z)/16
+                        $mossycobble.push([x_pos*16 + x, y, z_pos*16 + z])
+                    end
+                }
+            end
+        end
+    }
+}
+
+map_files = Dir.glob("#{MCPATH}/saves/#{ARGV[0]}/data/map_*.dat")
+
+# Map structure:
+# TAG_Compound data {
+#     TAG_Byte scale (2^scale blocks per pixel, 0-4, default 3)
+#     TAG_Byte dimension (0: overworld, -1: nether)
+#     TAG_Short width (default 128)
+#     TAG_Short height (default 128)
+#     TAG_Int xCenter (center of map in world coordinates)
+#     TAG_Int zCenter (center of map in world coordinates)
+#     TAG_Byte_Array colors (image data, pixel index = x + width*y, origin is upper left)
+# }
+MAP_CLUT = [
+    [0, 0, 0, 0], # unexplored
+    [0, 0, 0, 0], # unexplored
+    [0, 0, 0, 0], # unexplored
+    [0, 0, 0, 0], # unexplored
+    [89, 125, 39, 255], # Grass
+    [109, 153, 48, 255], 
+    [27, 178, 56, 255], 
+    [109, 153, 48, 255], 
+    [174, 164, 115, 255], # sand/gravel
+    [213, 201, 140, 255], 
+    [247, 233, 163, 255], 
+    [213, 201, 140, 255], 
+    [117, 117, 117, 255], # other
+    [144, 144, 144, 255], 
+    [167, 167, 167, 255], 
+    [144, 144, 144, 255], 
+    [180, 0, 0, 255], # lava
+    [220, 0, 0, 255], 
+    [255, 0, 0, 255], 
+    [220, 0, 0, 255], 
+    [112, 112, 180, 255], # ice
+    [138, 138, 220, 255], 
+    [160, 160, 255, 255], 
+    [138, 138, 220, 255], 
+    [117, 117, 117, 255], # other
+    [144, 144, 144, 255], 
+    [167, 167, 167, 255], 
+    [144, 144, 144, 255], 
+    [0, 87, 0, 255], # leaves/flowers
+    [0, 106, 0, 255], 
+    [0, 124, 0, 255], 
+    [0, 106, 0, 255], 
+    [180, 180, 180, 255], # snow
+    [220, 220, 220, 255], 
+    [255, 255, 255, 255], 
+    [220, 220, 220, 255], 
+    [115, 118, 129, 255], # clay
+    [141, 144, 158, 255], 
+    [164, 168, 184, 255], 
+    [141, 144, 158, 255], 
+    [129, 74, 33, 255], # dirt
+    [157, 91, 40, 255], 
+    [183, 106, 47, 255], 
+    [157, 91, 40, 255], 
+    [79, 79, 79, 255], # stone/cobblestone/ore
+    [96, 96, 96, 255], 
+    [112, 112, 112, 255], 
+    [96, 96, 96, 255], 
+    [45, 45, 180, 255], # water
+    [55, 55, 220, 255], 
+    [64, 64, 255, 255], 
+    [55, 55, 220, 255], 
+    [73, 58, 35, 255], # log/tree/wood
+    [89, 71, 43, 255], 
+    [104, 83, 50, 255], 
+    [89, 71, 43, 255]
+]
+
+MAP_ASCIICLUT = MAP_CLUT.map {|c| (c[0, 3].map {|x| x.to_s}).join(' ')}
+MAP_PIXCLUT = MAP_CLUT.map {|c|
+    Pixel.new(*(c[0, 3].map{|x| x*QuantumRange/255}), QuantumRange*(255 - c[3])/255)
+}
+
+HUGE = 4e9
+$xmin = HUGE
+$xmax = -HUGE
+$zmin = HUGE
+$zmax = -HUGE
+
+
+maps = map_files.map {|map_fname|
+    map_nbt = NBT.load(map_fname)
+    data = map_nbt[:data]
+    map = {
+        name: File.basename(map_fname, ".dat"),
+        nbt: map_nbt,
+        scale: 1 << data[:scale].value, # linear number of blocks per pixel
+        dimension: data[:dimension].value,
+        x_center: data[:xCenter].value,
+        z_center: data[:zCenter].value,
+        width: data[:width].value,
+        height: data[:height].value,
+        colors: data[:colors].value
+    }
+    $xmin = [$xmin, map[:x_center]/map[:scale] - map[:width]/2].min
+    $xmax = [$xmax, map[:x_center]/map[:scale] + map[:width]/2].max
+    $zmin = [$zmin, map[:z_center]/map[:scale] - map[:height]/2].min
+    $zmax = [$zmax, map[:z_center]/map[:scale] + map[:height]/2].max
+    map
+}
+
+puts "xmin: #{$xmin}"
+puts "xmax: #{$xmax}"
+puts "zmin: #{$zmin}"
+puts "zmax: #{$zmax}"
+puts "width: #{$xmax - $xmin}"
+puts "height: #{$zmax - $zmin}"
+
+scale = 8
+rescale = 4
+bigmap_width = ($xmax - $xmin)*rescale
+bigmap_height = ($zmax - $zmin)*rescale
+bigmap_canvas = Image.new(bigmap_width, bigmap_height)
+bigmap_canvas.color_reset!('black')
+bigmap_canvas.alpha(ActivateAlphaChannel)
+
+maps.each {|map|
+    puts map[:name]
+    width = map[:width]
+    height = map[:height]
+    map_canvas = Image.new(width, height)
+    map_canvas.color_reset!('black')
+    map_canvas.alpha(ActivateAlphaChannel)
+    map[:colors].bytes.each_with_index {|b, i| map_canvas.pixel_color(i % width, i/width, MAP_PIXCLUT[b])}
+    
+    map_canvas.scale!(rescale)
+    
+    bigmap_canvas.composite!(map_canvas,
+        rescale*(map[:x_center]/map[:scale] - map[:width]/2 - $xmin),
+        rescale*(map[:z_center]/map[:scale] - map[:height]/2 - $zmin), SrcOverCompositeOp)
+    
+    map_canvas.write(ARGV[0] + "_" + map[:name] + ".png")
+    
+    # puts map_nbt
+    # fout = File.new(ppm_fname, "w")
+    # fout.puts "P3"
+    # fout.puts "#{map[:width]} #{map[:height]}"
+    # fout.puts "255"
+    # map[:colors].each_byte {|b| fout.puts MAP_ASCIICLUT[b]}
+    # fout.close
+    # `convert #{ppm_fname} #{png_fname}`
+}
+
+gc = Draw.new
+gc.stroke('transparent')
+gc.fill('orange')
+$silverfish.each {|blk|
+    x = blk[0]
+    z = blk[2]
+    gc.text(rescale*x/scale - rescale*$xmin, rescale*z/scale - rescale*$zmin, '+')
+}
+gc.fill('brown')
+$villages.each {|blk|
+    x = blk[0]
+    z = blk[2]
+    gc.text(rescale*x/scale - rescale*$xmin, rescale*z/scale - rescale*$zmin, '#')
+}
+# gc.fill('gray')
+# $mossycobble.each {|blk|
+#     x = blk[0]
+#     z = blk[2]
+#     gc.text(rescale*x/scale - rescale*$xmin, rescale*z/scale - rescale*$zmin, '.')
+# }
+# gc.fill('yellow')
+# $spawners.each {|ent|
+#     x = ent[:x].value
+#     z = ent[:z].value
+#     gc.text(rescale*x/scale - rescale*$xmin, rescale*z/scale - rescale*$zmin, '*')
+# }
+# gc.fill('orange')
+# $chests.each {|ent|
+#     x = ent[:x].value
+#     z = ent[:z].value
+#     gc.text(rescale*x/scale - rescale*$xmin, rescale*z/scale - rescale*$zmin, 'X')
+# }
+gc.fill('red')
+$signposts.each_with_index {|ent, i|
+    x = ent[:x].value
+    z = ent[:z].value
+    puts "Signpost found at #{x}, #{z}:"
+    puts ent[:Text1].value
+    puts ent[:Text2].value
+    puts ent[:Text3].value
+    puts ent[:Text4].value
+    gc.text(rescale*x/scale - rescale*$xmin, rescale*z/scale - rescale*$zmin, i.to_s)
+}
+gc.draw(bigmap_canvas)
+
+bigmap_canvas.write(ARGV[0] + ".png")
+# pp world.get_stats()
+
+#world.compute_lights()
+#world.compute_heights()

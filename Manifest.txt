@@ -5,6 +5,7 @@ README.rdoc
 Rakefile
 bin/magellan
 bin/mgn_addinv
+bin/mgn_atlas
 bin/mgn_ditto
 bin/mgn_dump
 bin/mgn_dumpents
